@@ -3,10 +3,9 @@ import { MessageItem } from "./MessageItem";
 
 type MessageListProps = {
   messages: ChatMessage[];
-  emptyMessage: string;
 };
 
-export function MessageList({ messages, emptyMessage }: MessageListProps) {
+export function MessageList({ messages }: MessageListProps) {
   return (
     <section
       className="message-list"
@@ -14,15 +13,10 @@ export function MessageList({ messages, emptyMessage }: MessageListProps) {
       aria-live="polite"
     >
       {messages.length === 0 ? (
-        <p className="empty-message">{emptyMessage}</p>
+        <p className="empty-message">メッセージはありません。</p>
       ) : (
         messages.map((message) => (
-          <MessageItem
-            key={message.id}
-            messageText={message.text}
-            messageSentAt={message.sentAt}
-          />
-          // <MessageItem key={message.id} message={message} />
+          <MessageItem key={message.id} message={message} />
         ))
       )}
     </section>

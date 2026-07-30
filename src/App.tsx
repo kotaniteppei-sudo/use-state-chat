@@ -3,7 +3,7 @@ import "./App.css";
 import { ChatHeader } from "./components/ChatHeader";
 import { MessageForm } from "./components/MessageForm";
 import { MessageList } from "./components/MessageList";
-import type { ChatMessage } from "./types/chat"; // ブラウザでは使わない=TypeScript用のため分離
+import type { ChatMessage } from "./types/chat";
 
 const STORAGE_KEY = "simple-chat-messages";
 
@@ -62,7 +62,7 @@ export default function App() {
   return (
     <main className="chat-app">
       <ChatHeader messageNum={messages.length} />
-      <MessageList messages={messages} emptyMessage="これで合ってるのか" />
+      <MessageList messages={messages} />
       <MessageForm
         draftMessage={draftMessage}
         onDraftMessageChange={setDraftMessage}
