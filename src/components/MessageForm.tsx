@@ -11,7 +11,6 @@ export function MessageForm({
   onDraftMessageChange,
   onSend,
 }: MessageFormProps) {
-  //
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     onSend();
@@ -22,7 +21,6 @@ export function MessageForm({
       <label className="sr-only" htmlFor="message">
         メッセージ
       </label>
-
       <div>
         <input
           id="message"

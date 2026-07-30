@@ -1,5 +1,5 @@
-import type { ChatMessage } from "../types/chat";
 import { MessageItem } from "./MessageItem";
+import type { ChatMessage } from "../types/chat";
 
 type MessageListProps = {
   messages: ChatMessage[];

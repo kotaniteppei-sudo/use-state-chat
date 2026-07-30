@@ -1,50 +1,32 @@
-import "./App.css";
 import { useState, useEffect } from "react";
-import type { ChatMessage } from "./types/chat";
-import { ChatHeader } from "./compornents/ChatHeader";
-import { MessageList } from "./compornents/MessageList";
-import { MessageForm } from "./compornents/MessageForm";
-
-function isChatMessage(arg: unknown): arg is ChatMessage {
-  return (
-    arg !== null &&
-    typeof arg === "object" &&
-    "id" in arg &&
-    typeof (arg as Record<string, unknown>).id === "string" &&
-    "text" in arg &&
-    typeof (arg as Record<string, unknown>).text === "string" &&
-    "sentAt" in arg &&
-    typeof (arg as Record<string, unknown>).sentAt === "string"
-  );
-}
+import "./App.css";
+import { ChatHeader } from "./components/ChatHeader";
+import { MessageForm } from "./components/MessageForm";
+import { MessageList } from "./components/MessageList";
+import type { ChatMessage } from "./types/chat"; // ブラウザでは使わない=TypeScript用のため分離
 
 const STORAGE_KEY = "simple-chat-messages";
 
 function loadMessages(): ChatMessage[] {
   try {
-    const savedMessages = localStorage.getItem(STORAGE_KEY);
+    const saveMessages = localStorage.getItem(STORAGE_KEY);
 
-    if (savedMessages === null) {
+    if (saveMessages === null) {
       return [];
     }
 
-    const parsedJson = JSON.parse(savedMessages);
-    if (!Array.isArray(parsedJson)) return [];
+    const parsedMessages: unknown = JSON.parse(saveMessages);
 
-    const validMessages = parsedJson.filter(isChatMessage);
-
-    if (validMessages.length !== parsedJson.length) {
-      console.error("一部のチャット履歴が読み込めませんでした。");
-    }
-
-    return validMessages;
+    return Array.isArray(parsedMessages)
+      ? (parsedMessages as ChatMessage[])
+      : [];
   } catch (error) {
     console.error("チャット履歴の読み込みに失敗しました。", error);
     return [];
   }
 }
 
-function savedMessages(messages: ChatMessage[]): void {
+function saveMessages(messages: ChatMessage[]): void {
   try {
     const json = JSON.stringify(messages);
     localStorage.setItem(STORAGE_KEY, json);
@@ -58,12 +40,11 @@ export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
 
   useEffect(() => {
-    savedMessages(messages);
+    saveMessages(messages);
   }, [messages]);
 
   function handleSend() {
     const trimmedMessage = draftMessage.trim();
-
     if (trimmedMessage === "") {
       return;
     }
