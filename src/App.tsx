@@ -1,12 +1,9 @@
-import { useState, useEffect } from "react";
-import type { FormEvent } from "react";
 import "./App.css";
-
-type ChatMessage = {
-  id: string;
-  text: string;
-  sentAt: string;
-};
+import { useState, useEffect } from "react";
+import type { ChatMessage } from "./types/chat";
+import { ChatHeader } from "./compornents/ChatHeader";
+import { MessageList } from "./compornents/MessageList";
+import { MessageForm } from "./compornents/MessageForm";
 
 function isChatMessage(arg: unknown): arg is ChatMessage {
   return (
@@ -56,29 +53,16 @@ function savedMessages(messages: ChatMessage[]): void {
   }
 }
 
-function formatDateTime(isoString: string): string {
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(new Date(isoString));
-}
-
 export default function App() {
-  const [message, setMessage] = useState("");
+  const [draftMessage, setDraftMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
 
   useEffect(() => {
     savedMessages(messages);
   }, [messages]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const trimmedMessage = message.trim();
+  function handleSend() {
+    const trimmedMessage = draftMessage.trim();
 
     if (trimmedMessage === "") {
       return;
@@ -91,56 +75,18 @@ export default function App() {
     };
 
     setMessages((previousMessages) => [...previousMessages, newMessage]);
-    setMessage("");
+    setDraftMessage("");
   }
 
   return (
     <main className="chat-app">
-      <header className="chat-header">
-        <h1>かんたんチャット</h1>
-        <div>
-          <p>メッセージの変更をブラウザへ保存します。</p>
-          <button onClick={() => setMessages([])}>履歴を全て削除</button>
-        </div>
-      </header>
-
-      <section
-        className="message-list"
-        aria-label="メッセージ一覧"
-        aria-live="polite"
-      >
-        {messages.length === 0 ? (
-          <p className="empty-message">まだメッセージはありません。</p>
-        ) : (
-          messages.map((item) => (
-            <article className="message-card" key={item.id}>
-              <p>{item.text}</p>
-              <time className="sent-at" dateTime={item.sentAt}>
-                {formatDateTime(item.sentAt)}
-              </time>
-            </article>
-          ))
-        )}
-      </section>
-
-      <form className="message-form" onSubmit={handleSubmit}>
-        <label className="sr-only" htmlFor="message">
-          メッセージ
-        </label>
-        <div>
-          <input
-            id="message"
-            type="text"
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="メッセージを入力"
-            autoComplete="off"
-            maxLength={100}
-          />
-          <p>{message.length}/100</p>
-        </div>
-        <button type="submit">送信</button>
-      </form>
+      <ChatHeader />
+      <MessageList messages={messages} />
+      <MessageForm
+        draftMessage={draftMessage}
+        onDraftMessageChange={setDraftMessage}
+        onSend={handleSend}
+      />
     </main>
   );
 }
