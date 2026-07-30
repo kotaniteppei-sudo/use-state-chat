@@ -9,13 +9,13 @@ const STORAGE_KEY = "simple-chat-messages";
 
 function loadMessages(): ChatMessage[] {
   try {
-    const saveMessages = localStorage.getItem(STORAGE_KEY);
+    const savedMessages = localStorage.getItem(STORAGE_KEY);
 
-    if (saveMessages === null) {
+    if (savedMessages === null) {
       return [];
     }
 
-    const parsedMessages: unknown = JSON.parse(saveMessages);
+    const parsedMessages: unknown = JSON.parse(savedMessages);
 
     return Array.isArray(parsedMessages)
       ? (parsedMessages as ChatMessage[])
@@ -61,8 +61,8 @@ export default function App() {
 
   return (
     <main className="chat-app">
-      <ChatHeader />
-      <MessageList messages={messages} />
+      <ChatHeader messageNum={messages.length} />
+      <MessageList messages={messages} emptyMessage="これで合ってるのか" />
       <MessageForm
         draftMessage={draftMessage}
         onDraftMessageChange={setDraftMessage}

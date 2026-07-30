@@ -1,7 +1,8 @@
-import type { ChatMessage } from "../types/chat";
+// import type { ChatMessage } from "../types/chat";
 
 type MessageItemProps = {
-  message: ChatMessage;
+  messageText: string;
+  messageSentAt: string;
 };
 
 function formatDateTime(isoString: string): string {
@@ -15,12 +16,12 @@ function formatDateTime(isoString: string): string {
   }).format(new Date(isoString));
 }
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({ messageText, messageSentAt }: MessageItemProps) {
   return (
     <article className="message-card">
-      <p>{message.text}</p>
-      <time className="sent-at" dateTime={message.sentAt}>
-        {formatDateTime(message.sentAt)}
+      <p>{messageText}</p>
+      <time className="sent-at" dateTime={messageSentAt}>
+        {formatDateTime(messageSentAt)}
       </time>
     </article>
   );
