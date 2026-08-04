@@ -1,14 +1,19 @@
-type ChatHeaderProps = {
-  messageNum?: number;
+// import type { ChatMessage } from "../types/chat";
+
+type ChatHeaderPrpps = {
+  // messages: ChatMessage,
+  onDeleteAll: () => void;
 };
 
-export function ChatHeader({ messageNum = 0 }: ChatHeaderProps) {
+export function ChatHeader({ onDeleteAll }: ChatHeaderPrpps) {
   return (
     <header className="chat-header">
       <h1>かんたんチャット</h1>
       <div>
-        <p>メッセージの変更をブラウザへ保存します。</p>
-        <p>メッセージ数：{messageNum}件</p>
+        <p>メッセージをブラウザへ保存します。</p>
+        <button type="button" onClick={() => onDeleteAll()}>
+          全件削除
+        </button>
       </div>
     </header>
   );
