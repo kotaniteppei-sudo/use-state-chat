@@ -125,6 +125,7 @@ textarea {
 
 .message-card {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: stretch;
   gap: 8px;

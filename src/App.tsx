@@ -1,37 +1,33 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import { ChatHeader } from "./components/ChatHeader";
+import type { ChatMessage } from "./types/chat";
 import { MessageForm } from "./components/MessageForm";
 import { MessageList } from "./components/MessageList";
-import type { ChatMessage } from "./types/chat";
-import { MessageSearch } from "./components/MessageSearch";
-import { SortOrder } from "./components/SortOrder";
 
 const STORAGE_KEY = "simple-chat-messages";
-type isOldest = "oldest" | "newest";
 
-function loadMessages(): ChatMessage[] {
+function loadMessage(): ChatMessage | null {
   try {
-    const savedMessages = localStorage.getItem(STORAGE_KEY);
-
-    if (savedMessages === null) {
-      return [];
+    const savedMessage = localStorage.getItem(STORAGE_KEY);
+    if (savedMessage === null) {
+      return null;
     }
+    const parsedMessage: unknown = JSON.parse(savedMessage);
 
-    const parsedMessages: unknown = JSON.parse(savedMessages);
-
-    return Array.isArray(parsedMessages)
-      ? (parsedMessages as ChatMessage[])
-      : [];
+    return parsedMessage as ChatMessage;
   } catch (error) {
     console.error("チャット履歴の読み込みに失敗しました。", error);
-    return [];
+    return null;
   }
 }
 
-function saveMessages(messages: ChatMessage[]): void {
+function saveMessage(message: ChatMessage | null): void {
   try {
-    const json = JSON.stringify(messages);
+    if (message === null) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    const json = JSON.stringify(message);
     localStorage.setItem(STORAGE_KEY, json);
   } catch (error) {
     console.error("履歴の保存に失敗しました", error);
@@ -40,27 +36,11 @@ function saveMessages(messages: ChatMessage[]): void {
 
 export default function App() {
   const [draftMessage, setDraftMessage] = useState<string>("");
-  const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState<string>("");
-  const [searchText, setSearchText] = useState<string>("");
-  const [order, setOrder] = useState<isOldest>("oldest");
-
-  const normalizedSearchText = searchText.trim().toLocaleLowerCase("ja-JP");
-  const filteredMessages = messages.filter((message) =>
-    message.text.toLocaleLowerCase("ja-JP").includes(normalizedSearchText),
-  );
-
-  const visibleMessages = [...filteredMessages].sort((a, b) => {
-    const timeA = new Date(a.sentAt).getTime();
-    const timeB = new Date(b.sentAt).getTime();
-
-    return order === "oldest" ? timeA - timeB : timeB - timeA;
-  });
+  const [message, setMessage] = useState<ChatMessage | null>(loadMessage);
 
   useEffect(() => {
-    saveMessages(messages);
-  }, [messages]);
+    saveMessage(message);
+  }, [message]);
 
   function handleSend() {
     const trimmedMessage = draftMessage.trim();
@@ -70,86 +50,16 @@ export default function App() {
       id: Math.random().toString(36).substring(2, 7),
       text: trimmedMessage,
       sentAt: new Date().toISOString(),
-      sentAtNew: "",
     };
 
-    setMessages((previousMessages) => [...previousMessages, newMessage]);
+    setMessage(newMessage);
     setDraftMessage("");
-  }
-
-  function startEditing(message: ChatMessage) {
-    setEditingMessageId(message.id);
-    setEditingText(message.text);
-  }
-
-  function cancelEditing() {
-    setEditingMessageId(null);
-    setEditingText("");
-  }
-
-  function saveEditing(messageId: string) {
-    const nextText = editingText.trim();
-    if (nextText === "") return;
-
-    setMessages((previous) =>
-      previous.map((message) =>
-        message.id === messageId
-          ? {
-              ...message,
-              text: nextText,
-              sentAtNew: new Date().toISOString(),
-              isEdited: true,
-            }
-          : message,
-      ),
-    );
-    cancelEditing();
-  }
-
-  function deleteMessage(messageId: string) {
-    if (!window.confirm("このメッセージを削除しますか？")) return;
-
-    setMessages((previousMessages) =>
-      previousMessages.filter((message) => message.id !== messageId),
-    );
-  }
-
-  function deleteAllMessages() {
-    if (!window.confirm("全てのメッセージを削除しますか？")) return;
-    if (!window.confirm("削除を実行します ")) return;
-
-    setMessages([]);
-  }
-
-  function toggleOrder() {
-    setOrder((currentOrder) =>
-      currentOrder === "oldest" ? "newest" : "oldest",
-    );
   }
 
   return (
     <>
-      <ChatHeader onDeleteAll={deleteAllMessages} />
-      <div className="sub-header">
-        <SortOrder toggleOrder={toggleOrder} order={order} />
-        <MessageSearch
-          searchText={searchText}
-          onSearchTextChange={setSearchText}
-          totalCount={messages.length}
-          filteredCount={visibleMessages.length}
-        />
-      </div>
       <main className="chat-app">
-        <MessageList
-          messages={visibleMessages}
-          editingMessageId={editingMessageId}
-          editingText={editingText}
-          onEditingTextChange={setEditingText}
-          onStartEditing={startEditing}
-          onCancelEditing={cancelEditing}
-          onSaveEditing={saveEditing}
-          onDelete={deleteMessage}
-        />
+        <MessageList message={message} />
         <MessageForm
           draftMessage={draftMessage}
           onDraftMessageChange={setDraftMessage}

@@ -1,4 +1,3 @@
-import { useAutoResizeTextarea } from "../utils/useAutoResizeTextarea";
 import type { FormEvent } from "react";
 
 type MessageFormProps = {
@@ -13,8 +12,6 @@ export function MessageForm(props: MessageFormProps) {
     props.onSend();
   }
 
-  const textareaRef = useAutoResizeTextarea(props.draftMessage);
-
   return (
     <form className="message-form" onSubmit={handleSubmit}>
       <label className="sr-only" htmlFor="message">
@@ -28,7 +25,6 @@ export function MessageForm(props: MessageFormProps) {
           placeholder="メッセージを入力"
           autoComplete="off"
           maxLength={100}
-          ref={textareaRef}
         />
         <p className="textCount">{props.draftMessage.length}/100</p>
       </div>
