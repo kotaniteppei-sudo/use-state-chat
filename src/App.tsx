@@ -16,7 +16,7 @@ function loadMessage(): ChatMessage | null {
 
     return parsedMessage as ChatMessage;
   } catch (error) {
-    console.error("チャット履歴の読み込みに失敗しました。", error);
+    console.error("履歴の読み込みに失敗しました。", error);
     return null;
   }
 }
