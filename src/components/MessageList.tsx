@@ -1,38 +1,50 @@
-import { formatDateTime } from "../utils/formatDateTime";
-import type { StorageData } from "../storage/chatStorage";
-
+import { MessageItem } from "./MessageItem";
+import type { ChatMessage } from "../types/chat";
 type MessageListProps = {
-  storageData: StorageData | null;
+  messages: ChatMessage[];
+  editingMessageId: string | null;
+  editingText: string;
+  hasSearch: boolean;
+  onEditingTextChange: (value: string) => void;
+  onStartEditing: (message: ChatMessage) => void;
+  onCancelEditing: () => void;
+  onSaveEditing: (messageId: string) => void;
+  onDelete: (messageId: string) => void;
 };
-
-export function MessageList({ storageData }: MessageListProps) {
-  if (!storageData || storageData.versions.length === 0) {
-    return (
-      <section className="message-list">
-        <article className="message-card">
-          <p className="message">メッセージはありません。</p>
-        </article>
-      </section>
-    );
-  }
-
-  const latestRecord = storageData.versions[storageData.versions.length - 1];
-
+export function MessageList({
+  messages,
+  editingMessageId,
+  editingText,
+  hasSearch,
+  onEditingTextChange,
+  onStartEditing,
+  onCancelEditing,
+  onSaveEditing,
+  onDelete,
+}: MessageListProps) {
   return (
-    <section
-      className="message-list"
-      aria-label="メッセージ一覧"
-      aria-live="polite"
-    >
-      <div className="message-list-header"></div>
-      {latestRecord.messages.map((message) => (
-        <article key={message.id} id={message.id} className="message-card">
-          <p className="message">{message.text}</p>
-          <time className="sent-at" dateTime={message.sentAt}>
-            {formatDateTime(message.sentAt)}
-          </time>
-        </article>
-      ))}
+    <section className="message-list" aria-label="メッセージ一覧">
+      {messages.length === 0 ? (
+        <p className="empty-message">
+          {hasSearch
+            ? "検索条件に一致するメッセージはありません。"
+            : "まだメッセージはありません。"}
+        </p>
+      ) : (
+        messages.map((message) => (
+          <MessageItem
+            key={message.id}
+            message={message}
+            isEditing={editingMessageId === message.id}
+            editingText={editingText}
+            onEditingTextChange={onEditingTextChange}
+            onStartEditing={onStartEditing}
+            onCancelEditing={onCancelEditing}
+            onSaveEditing={onSaveEditing}
+            onDelete={onDelete}
+          />
+        ))
+      )}
     </section>
   );
 }

@@ -1,66 +1,95 @@
-import { useState } from "react";
-import "./App.css";
-import type { ChatMessage } from "./types/chat";
+import { useEffect, useMemo, useState } from "react";
+import { ChatHeader } from "./components/ChatHeader";
 import { MessageForm } from "./components/MessageForm";
 import { MessageList } from "./components/MessageList";
-import { useStoredMessages } from "./hooks/useStoredMessages";
-import type { VersionRecord } from "./storage/chatStorage";
-
+import { MessageSearch } from "./components/MessageSearch";
+import { loadMessages, saveMessages } from "./storage/chatStorage";
+import type { ChatMessage } from "./types/chat";
+import { createMessage } from "./utils/createMessage";
 export default function App() {
-  const [draftMessage, setDraftMessage] = useState<string>("");
-  const { storageData, setStorageData, saveFailed } = useStoredMessages();
-
-  function handleSend(): boolean {
-    const newMessage: ChatMessage = {
-      id: Math.random().toString(36).substring(2, 7),
-      text: draftMessage.trim(),
-      sentAt: new Date().toISOString(),
-    };
-
-    function updateStorageData() {
-      const nextVersion = storageData ? storageData.currentVersion + 1 : 1;
-
-      const lastRecord =
-        storageData && storageData.versions.length > 0
-          ? storageData.versions[storageData.versions.length - 1]
-          : null;
-
-      const currentMessages = lastRecord ? lastRecord.messages : [];
-
-      const newVersionRecord: VersionRecord = {
-        version: nextVersion,
-        updateAt: new Date().toISOString(),
-        messages: [...currentMessages, newMessage],
-      };
-
-      const prevVersions = storageData ? storageData.versions : [];
-
-      return {
-        currentVersion: nextVersion,
-        versions: [...prevVersions, newVersionRecord],
-      };
-    }
-
-    setStorageData(updateStorageData);
+  const [initialMessages] = useState(loadMessages);
+  const [draftMessage, setDraftMessage] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    initialMessages.messages,
+  );
+  const [searchText, setSearchText] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  useEffect(() => {
+    saveMessages(messages);
+  }, [messages]);
+  const normalizedSearchText = searchText.trim().toLocaleLowerCase("ja-JP");
+  const visibleMessages = useMemo(
+    () =>
+      messages.filter((message) =>
+        message.text.toLocaleLowerCase("ja-JP").includes(normalizedSearchText),
+      ),
+    [messages, normalizedSearchText],
+  );
+  function handleSend() {
+    const normalized = draftMessage.trim();
+    if (normalized.length === 0) return;
+    setMessages((current) => [...current, createMessage(normalized)]);
     setDraftMessage("");
-    return true;
+  }
+  function startEditing(message: ChatMessage) {
+    setEditingMessageId(message.id);
+    setEditingText(message.text);
   }
 
+  function cancelEditing() {
+    setEditingMessageId(null);
+    setEditingText("");
+  }
+  function saveEditing(messageId: string) {
+    const text = editingText.trim();
+    if (text.length === 0) return;
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId
+          ? { ...message, text, editedAt: new Date().toISOString() }
+          : message,
+      ),
+    );
+    cancelEditing();
+  }
+  function deleteMessage(messageId: string) {
+    if (!window.confirm("このメッセージを削除しますか？")) return;
+    setMessages((current) =>
+      current.filter((message) => message.id !== messageId),
+    );
+    if (editingMessageId === messageId) cancelEditing();
+  }
   return (
-    <>
-      <main className="chat-app">
-        {saveFailed && (
-          <p className="error-banner" role="alert">
-            メッセージの保存に失敗しました。
-          </p>
-        )}
-        <MessageList storageData={storageData} />
-        <MessageForm
-          draftMessage={draftMessage}
-          onDraftMessageChange={setDraftMessage}
-          onSend={handleSend}
-        />
-      </main>
-    </>
+    <main className="chat-app">
+      <ChatHeader messageCount={messages.length} />
+      {initialMessages.storageWarning === null ? null : (
+        <p className="notice" role="alert">
+          {initialMessages.storageWarning}
+        </p>
+      )}
+      <MessageSearch
+        value={searchText}
+        visibleCount={visibleMessages.length}
+        totalCount={messages.length}
+        onChange={setSearchText}
+      />
+      <MessageList
+        messages={visibleMessages}
+        editingMessageId={editingMessageId}
+        editingText={editingText}
+        hasSearch={normalizedSearchText.length > 0}
+        onEditingTextChange={setEditingText}
+        onStartEditing={startEditing}
+        onCancelEditing={cancelEditing}
+        onSaveEditing={saveEditing}
+        onDelete={deleteMessage}
+      />
+      <MessageForm
+        draftMessage={draftMessage}
+        onDraftMessageChange={setDraftMessage}
+        onSend={handleSend}
+      />
+    </main>
   );
 }
