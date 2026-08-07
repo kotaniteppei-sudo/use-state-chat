@@ -1,7 +1,5 @@
-export interface ChatMessage {
+export type ChatMessage = {
   id: string;
   text: string;
   sentAt: string;
-  sentAtNew: string;
-  isEdited?: boolean;
-}
+};
