@@ -15,8 +15,7 @@ button:disabled {
 }
 
 input:focus-visible {
-  outline: 3px solid #b45309;
-  outline-offset: 2px;
+  outline: 2px solid #b45309;
 }
 
 .search-panel {
@@ -93,7 +92,6 @@ button {
 button:focus-visible,
 textarea:focus-visible {
   outline: 3px solid #b45309;
-  outline-offset: 2px;
 }
 
 .chat-app {
@@ -135,6 +133,7 @@ textarea:focus-visible {
   border: 1px solid #efb0a9;
   border-radius: 10px;
   color: #8a1c13;
+  text-align: center;
   background: #fff0ee;
 }
 
@@ -146,12 +145,11 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #fbfcff;
 }
 
 .empty-message {
   margin: auto;
-  color: #64748b;
+  color: #ffffff;
   text-align: center;
 }
 
@@ -159,7 +157,7 @@ textarea:focus-visible {
   padding: 14px 16px;
   border: 1px solid #cfe0f8;
   border-radius: 15px 15px 15px 5px;
-  background: #eaf2ff;
+  background: #fafcff;
 }
 
 .message-card p {
@@ -176,11 +174,14 @@ textarea:focus-visible {
   padding: 24px;
   display: grid;
   gap: 10px;
+  text-align: center;
+  background-color: #fff;
+  border: 1px solid #172033;
+  border-radius: 8px 8px 0 0;
 }
 
 .textCount {
   font-size: 0.9rem;
-  text-align: right;
 }
 
 .message-form textarea {
@@ -193,13 +194,14 @@ textarea:focus-visible {
 }
 
 .message-form > button {
-  min-height: 44px;
+  min-height: 40px;
   border: 0;
   border-radius: 10px;
   color: #fff;
   background: #1f62bb;
   font-weight: 700;
 }
+
 @media (max-width: 640px) {
   .chat-header {
     padding-block: 16px;
@@ -213,10 +215,12 @@ textarea:focus-visible {
     margin: 0;
     border-radius: 0;
     overflow: hidden;
+    background: #b9c3d0;
   }
   .search-panel {
     padding: 8px 32px;
     font-size: 0.9rem;
+    background-color: #fff;
   }
   #search-heading {
     margin: 0;
@@ -242,7 +246,7 @@ textarea:focus-visible {
   .message-form {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0;
     padding: 16px;
   }
   .message-form textarea,
@@ -250,6 +254,21 @@ textarea:focus-visible {
     padding: 4px 12px;
     font-size: 0.9rem;
     line-height: 1.2;
+  }
+  .form-meta {
+    text-align: right;
+  }
+  #message-help {
+    margin: 4px 0 8px;
+    text-align: center;
+  }
+  .notice {
+    margin: 0 0 12px;
+    padding: 4px 8px;
+  }
+  .message-form > button {
+    margin-inline: auto;
+    width: 60%;
   }
 }
 

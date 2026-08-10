@@ -1,69 +1,78 @@
-import { useState, useRef, type FormEvent } from "react";
-import { validateMessages } from "../utils/validateMessages";
-import { FormAlert } from "./FormAlert";
+import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { FormError } from "./FormError";
+import {
+  MESSAGE_MAX_LENGTH,
+  validateMessage,
+  normalizeMessage,
+} from "../utils/validateMessage";
 
 type MessageFormProps = {
   draftMessage: string;
   onDraftMessageChange: (value: string) => void;
-  onSend: () => void;
+  onSend: () => boolean;
 };
 
-export function MessageForm(props: MessageFormProps) {
-  // フォームのバリデーション
+export function MessageForm({
+  draftMessage,
+  onDraftMessageChange,
+  onSend,
+}: MessageFormProps) {
   const [submitAttempted, setSubmitAttempted] = useState(false);
-  const validationResult = validateMessages(
-    props.draftMessage,
-    submitAttempted,
-  );
-  // 送信通知
-  const [statusMessage, setStatusMessage] = useState("");
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const validationMessage = validateMessage(draftMessage);
+  const showValidationError = submitAttempted && validationMessage !== null;
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const describedBy = [
+    "message-help",
+    "message-count",
+    showValidationError ? "message-error" : null,
+  ]
+    .filter((value): value is string => value !== null)
+    .join(" ");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (showValidationError) return;
+
     setSubmitAttempted(true);
 
-    if (!validationResult.canSubmit) return;
+    if (onSend()) setSubmitAttempted(false);
+    inputRef.current?.focus();
+  }
 
-    props.onSend();
-    setSubmitAttempted(false);
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.nativeEvent.isComposing) return;
 
-    setStatusMessage("メッセージを送信しました");
-
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setStatusMessage("");
-    }, 3000);
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
   }
 
   return (
-    <>
-      <form className="message-form" onSubmit={handleSubmit} noValidate>
-        <label className="sr-only" htmlFor="message-input">
-          メッセージ
-        </label>
-        <textarea
-          id="message-input"
-          aria-invalid={validationResult.hasError}
-          aria-describedby="message-help message-error"
-          value={props.draftMessage}
-          onChange={(event) => props.onDraftMessageChange(event.target.value)}
-          placeholder="200文字まで入力可能"
-        />
-        <p className="textCount" aria-live="polite">
-          {props.draftMessage.length}/200文字{" "}
-        </p>
-        <div
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className="sr-only"
-        >
-          {statusMessage}
-        </div>
-        <FormAlert id="message-error" message={validationResult.message} />
-        <button type="submit">送信</button>
-      </form>
-    </>
+    <form className="message-form" onSubmit={handleSubmit}>
+      <label htmlFor="message-input" className="sr-only">
+        メッセージ
+      </label>
+      <textarea
+        ref={inputRef}
+        id="message-input"
+        aria-describedby={describedBy}
+        aria-invalid={showValidationError}
+        value={draftMessage}
+        onChange={(event) => onDraftMessageChange(event.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+      <div className="form-meta">
+        <output id="message-count" className="textCount" aria-live="off">
+          {normalizeMessage(draftMessage).length} / {MESSAGE_MAX_LENGTH}
+        </output>
+        <p id="message-help">Enterで改行、Ctrl/Cmd + Enterで送信します。</p>
+      </div>
+      {showValidationError && validationMessage !== null ? (
+        <FormError id="message-error">{validationMessage}</FormError>
+      ) : null}
+      <button type="submit">送信</button>
+    </form>
   );
 }

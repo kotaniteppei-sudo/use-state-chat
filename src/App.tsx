@@ -6,6 +6,8 @@ import { MessageSearch } from "./components/MessageSearch";
 import { loadMessages, saveMessages } from "./storage/chatStorage";
 import type { ChatMessage } from "./types/chat";
 import { createMessage } from "./utils/createMessage";
+import { normalizeMessage, validateMessage } from "./utils/validateMessage";
+
 export default function App() {
   const [initialMessages] = useState(loadMessages);
   const [draftMessage, setDraftMessage] = useState("");
@@ -15,10 +17,13 @@ export default function App() {
   const [searchText, setSearchText] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+
   useEffect(() => {
     saveMessages(messages);
   }, [messages]);
+
   const normalizedSearchText = searchText.trim().toLocaleLowerCase("ja-JP");
+
   const visibleMessages = useMemo(
     () =>
       messages.filter((message) =>
@@ -26,12 +31,16 @@ export default function App() {
       ),
     [messages, normalizedSearchText],
   );
-  function handleSend() {
-    const normalized = draftMessage.trim();
-    if (normalized.length === 0) return;
+
+  function handleSend(): boolean {
+    if (validateMessage(draftMessage) !== null) return false;
+    const normalized = normalizeMessage(draftMessage);
+
     setMessages((current) => [...current, createMessage(normalized)]);
     setDraftMessage("");
+    return true;
   }
+
   function startEditing(message: ChatMessage) {
     setEditingMessageId(message.id);
     setEditingText(message.text);
@@ -41,6 +50,7 @@ export default function App() {
     setEditingMessageId(null);
     setEditingText("");
   }
+
   function saveEditing(messageId: string) {
     const text = editingText.trim();
     if (text.length === 0) return;
@@ -53,6 +63,7 @@ export default function App() {
     );
     cancelEditing();
   }
+
   function deleteMessage(messageId: string) {
     if (!window.confirm("このメッセージを削除しますか？")) return;
     setMessages((current) =>
@@ -60,6 +71,7 @@ export default function App() {
     );
     if (editingMessageId === messageId) cancelEditing();
   }
+
   return (
     <main className="chat-app">
       <ChatHeader messageCount={messages.length} />
