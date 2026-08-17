@@ -149,7 +149,6 @@ textarea:focus-visible {
 
 .empty-message {
   margin: auto;
-  color: #ffffff;
   text-align: center;
 }
 
@@ -167,17 +166,21 @@ textarea:focus-visible {
 
 .message-card time {
   color: #526175;
+  font-size: 0.9rem;
+}
+
+.message-meta span {
+  place-self: end;
+  color: #121212;
   font-size: 0.8rem;
 }
 
 .message-form {
-  padding: 24px;
+  padding: 24px 24px 48px;
   display: grid;
   gap: 10px;
   text-align: center;
   background-color: #fff;
-  border: 1px solid #172033;
-  border-radius: 8px 8px 0 0;
 }
 
 .textCount {
@@ -207,6 +210,7 @@ textarea:focus-visible {
     padding-block: 16px;
     font-size: 0.8rem;
   }
+
   .chat-app {
     display: flex;
     flex-direction: column;
@@ -217,55 +221,70 @@ textarea:focus-visible {
     overflow: hidden;
     background: #b9c3d0;
   }
+
   .search-panel {
     padding: 8px 32px;
     font-size: 0.9rem;
     background-color: #fff;
   }
+
   #search-heading {
     margin: 0;
     font-size: 0.9rem;
   }
+
   .search-row input,
   .search-row button {
     padding: 4px 8px;
   }
+
   .message-list {
     flex: 1;
     min-height: 0;
     max-height: unset;
   }
+
   .message-card {
-    padding: 8px 12px;
+    padding: 12px 8px;
     font-size: 0.9rem;
     line-height: 1.2;
   }
+
   .message-meta {
     justify-content: flex-end;
   }
+
   .message-form {
     display: flex;
     flex-direction: column;
     gap: 0;
     padding: 16px;
+    border: 1px solid #c4c9d3;
+    border-radius: 8px 8px 0 0;
   }
+
   .message-form textarea,
   .message-actions button {
-    padding: 4px 12px;
+    padding: 4px 8px;
     font-size: 0.9rem;
     line-height: 1.2;
   }
+
   .form-meta {
     text-align: right;
   }
+
   #message-help {
     margin: 4px 0 8px;
     text-align: center;
   }
+
   .notice {
-    margin: 0 0 12px;
-    padding: 4px 8px;
+    margin: 8px 4px;
+    padding: 4px;
+    font-size: 0.8rem;
   }
+
   .message-form > button {
     margin-inline: auto;
     width: 60%;

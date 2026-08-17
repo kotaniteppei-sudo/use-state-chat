@@ -9,12 +9,14 @@ type MessageItemProps = {
   onSaveEditing: (messageId: string) => void;
   onDelete: (messageId: string) => void;
 };
+
 function formatDateTime(isoString: string): string {
   return new Intl.DateTimeFormat("ja-JP", {
     dateStyle: "medium",
     timeStyle: "medium",
   }).format(new Date(isoString));
 }
+
 export function MessageItem({
   message,
   isEditing,

@@ -9,105 +9,109 @@ type StoredChatV2 = {
   messages: ChatMessage[];
 };
 
-export type InitialMessages = {
-  messages: ChatMessage[];
-  storageWarning: string | null;
-};
+type ReadableStorage = Pick<Storage, "getItem">;
+type WritableStorage = Pick<Storage, "setItem" | "removeItem">;
 
-function isIsoDate(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  const date = new Date(value);
-  return !Number.isNaN(date.valueOf()) && date.toISOString() === value;
+export type LoadMessagesResult =
+  | { status: "success"; messages: ChatMessage[] }
+  | { status: "missing"; messages: [] }
+  | { status: "invalid"; messages: [] }
+  | { status: "unavailable"; messages: [] };
+
+function browserStorage(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch (error: unknown) {
+    console.error("ブラウザー保存領域を取得できませんでした。", error);
+    return null;
+  }
 }
 
-function isChatMessage(value: unknown): value is ChatMessage {
-  if (typeof value !== "object" || value === null) return false;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
-  const candidate = value as Record<string, unknown>;
-  if (typeof candidate.id !== "string" || typeof candidate.text !== "string") {
-    return false;
-  }
+function isIsoDate(value: string): boolean {
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString() === value;
+}
+
+export function isChatMessage(value: unknown): value is ChatMessage {
+  if (!isRecord(value)) return false;
+
+  const editedAtIsValid =
+    value.editedAt === undefined ||
+    (typeof value.editedAt === "string" && isIsoDate(value.editedAt));
 
   return (
-    candidate.id.length > 0 &&
-    candidate.text.trim() === candidate.text &&
-    candidate.text.length > 0 &&
-    isIsoDate(candidate.sentAt) &&
-    (candidate.editedAt === undefined || isIsoDate(candidate.editedAt))
+    typeof value.id === "string" &&
+    value.id.length > 0 &&
+    typeof value.text === "string" &&
+    value.text.trim() === value.text &&
+    value.text.length > 0 &&
+    typeof value.sentAt === "string" &&
+    isIsoDate(value.sentAt) &&
+    editedAtIsValid
   );
 }
 
-function isMessageArry(value: unknown): value is ChatMessage[] {
+function isMessageArray(value: unknown): value is ChatMessage[] {
   if (!Array.isArray(value) || !value.every(isChatMessage)) return false;
   return new Set(value.map((message) => message.id)).size === value.length;
 }
 
-function parseCurrentMessages(raw: string): ChatMessage[] | null {
+export function parseMessages(raw: string): LoadMessagesResult {
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null) return null;
-
-    const candidate = parsed as Record<string, unknown>;
-    return candidate.schemaVersion === STORAGE_SCHEMA_VERSION &&
-      isMessageArry(candidate.messages)
-      ? candidate.messages
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function parseLegacyMessages(raw: string): ChatMessage[] | null {
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return isMessageArry(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-export function loadMessages(): InitialMessages {
-  try {
-    const currentRaw = localStorage.getItem(STORAGE_KEY);
-    if (currentRaw !== null) {
-      const messages = parseCurrentMessages(currentRaw);
-      return messages === null
-        ? {
-            messages: [],
-            storageWarning:
-              "保存データが壊れていたため、空の履歴で開始しました。",
-          }
-        : {
-            messages,
-            storageWarning: null,
-          };
+    if (!isRecord(parsed)) return { status: "invalid", messages: [] };
+    if (
+      parsed.schemaVersion !== STORAGE_SCHEMA_VERSION ||
+      !isMessageArray(parsed.messages)
+    ) {
+      return { status: "invalid", messages: [] };
     }
 
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacyRaw === null) return { messages: [], storageWarning: null };
-
-    const Legacymessages = parseLegacyMessages(legacyRaw);
-    return Legacymessages === null
-      ? {
-          messages: [],
-          storageWarning:
-            "旧形式の保存データが壊れていたため、空の履歴で開始しました。",
-        }
-      : {
-          messages: Legacymessages,
-          storageWarning: null,
-        };
+    return { status: "success", messages: parsed.messages };
   } catch {
-    return {
-      messages: [],
-      storageWarning:
-        "保存データを読み込めなかったため、空の履歴で開始しました。",
-    };
+    return { status: "invalid", messages: [] };
   }
 }
 
-export function saveMessages(messages: ChatMessage[]): void {
-  if (!isMessageArry(messages)) return;
+function parseLegacyMessages(raw: string): LoadMessagesResult {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return isMessageArray(parsed)
+      ? { status: "success", messages: parsed }
+      : { status: "invalid", messages: [] };
+  } catch {
+    return { status: "invalid", messages: [] };
+  }
+}
+
+export function loadMessages(
+  storage: ReadableStorage | null = browserStorage(),
+): LoadMessagesResult {
+  if (storage === null) return { status: "unavailable", messages: [] };
+
+  try {
+    const currentRaw = storage.getItem(STORAGE_KEY);
+    if (currentRaw !== null) return parseMessages(currentRaw);
+
+    const legacyRaw = storage.getItem(LEGACY_STORAGE_KEY);
+    return legacyRaw === null
+      ? { status: "missing", messages: [] }
+      : parseLegacyMessages(legacyRaw);
+  } catch (error: unknown) {
+    console.error("メッセージ履歴の読み込みに失敗しました。", error);
+    return { status: "unavailable", messages: [] };
+  }
+}
+
+export function saveMessages(
+  messages: ChatMessage[],
+  storage: WritableStorage | null = browserStorage(),
+): boolean {
+  if (storage === null || !isMessageArray(messages)) return false;
 
   const stored: StoredChatV2 = {
     schemaVersion: STORAGE_SCHEMA_VERSION,
@@ -115,8 +119,25 @@ export function saveMessages(messages: ChatMessage[]): void {
   };
 
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-  } catch {
-    // 教材05で保存失敗を戻り値としてUIへ通知する形に整理する。
+    storage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    return true;
+  } catch (error: unknown) {
+    console.error("メッセージ履歴の保存に失敗しました。", error);
+    return false;
+  }
+}
+
+export function clearMessages(
+  storage: WritableStorage | null = browserStorage(),
+): boolean {
+  if (storage === null) return false;
+
+  try {
+    storage.removeItem(STORAGE_KEY);
+    storage.removeItem(LEGACY_STORAGE_KEY);
+    return true;
+  } catch (error: unknown) {
+    console.error("メッセージ履歴の削除に失敗しました。", error);
+    return false;
   }
 }

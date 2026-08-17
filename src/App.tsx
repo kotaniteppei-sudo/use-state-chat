@@ -1,29 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChatHeader } from "./components/ChatHeader";
 import { MessageForm } from "./components/MessageForm";
 import { MessageList } from "./components/MessageList";
 import { MessageSearch } from "./components/MessageSearch";
-import { loadMessages, saveMessages } from "./storage/chatStorage";
+import { useStoredMessages } from "./hooks/useStoredMessages";
 import type { ChatMessage } from "./types/chat";
 import { createMessage } from "./utils/createMessage";
 import { normalizeMessage, validateMessage } from "./utils/validateMessage";
 
 export default function App() {
-  const [initialMessages] = useState(loadMessages);
+  const { messages, setMessages, loadStatus, saveFailed } = useStoredMessages();
   const [draftMessage, setDraftMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>(
-    initialMessages.messages,
-  );
   const [searchText, setSearchText] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
 
-  useEffect(() => {
-    saveMessages(messages);
-  }, [messages]);
-
   const normalizedSearchText = searchText.trim().toLocaleLowerCase("ja-JP");
-
   const visibleMessages = useMemo(
     () =>
       messages.filter((message) =>
@@ -75,11 +67,18 @@ export default function App() {
   return (
     <main className="chat-app">
       <ChatHeader messageCount={messages.length} />
-      {initialMessages.storageWarning === null ? null : (
+
+      {loadStatus === "invalid" ? (
         <p className="notice" role="alert">
-          {initialMessages.storageWarning}
+          保存データが壊れていたため、安全な空の履歴で開始しました。
         </p>
-      )}
+      ) : null}
+      {loadStatus === "unavailable" || saveFailed ? (
+        <p className="notice" role="alert">
+          ブラウザーへ履歴を保存できません。画面上の操作は続けられます。
+        </p>
+      ) : null}
+
       <MessageSearch
         value={searchText}
         visibleCount={visibleMessages.length}
