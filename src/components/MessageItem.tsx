@@ -1,4 +1,6 @@
 import type { ChatMessage } from "../types/chat";
+import { validateMessage } from "../utils/validateMessage";
+
 type MessageItemProps = {
   message: ChatMessage;
   isEditing: boolean;
@@ -11,10 +13,27 @@ type MessageItemProps = {
 };
 
 function formatDateTime(isoString: string): string {
-  return new Intl.DateTimeFormat("ja-JP", {
-    dateStyle: "medium",
-    timeStyle: "medium",
-  }).format(new Date(isoString));
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return "";
+
+  const fotmatter = new Intl.DateTimeFormat("ja-JP-u-ca-japanese", {
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  });
+
+  const parts = fotmatter.formatToParts(date);
+  return (
+    parts
+      .map((part) => {
+        if (part.type === "literal" && part.value.trim() === ":") {
+          return "時";
+        }
+        return part.value;
+      })
+      .join("") + "分"
+  );
 }
 
 export function MessageItem({
@@ -27,6 +46,8 @@ export function MessageItem({
   onSaveEditing,
   onDelete,
 }: MessageItemProps) {
+  const editingError = validateMessage(editingText);
+
   return (
     <article className="message-card">
       {isEditing ? (
@@ -37,15 +58,17 @@ export function MessageItem({
             value={editingText}
             onChange={(event) => onEditingTextChange(event.target.value)}
           />
+          {editingError === null ? null : (
+            <p className="edit-help">{editingError}</p>
+          )}
           <div className="message-actions">
             <button
               type="button"
-              disabled={editingText.trim().length === 0}
+              disabled={editingError !== null}
               onClick={() => onSaveEditing(message.id)}
             >
               保存
             </button>
-
             <button type="button" onClick={onCancelEditing}>
               取消
             </button>

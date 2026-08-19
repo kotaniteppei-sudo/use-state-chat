@@ -1,6 +1,5 @@
 import { MessageItem } from "./MessageItem";
 import type { ChatMessage } from "../types/chat";
-import { clearMessages } from "../storage/chatStorage";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -26,9 +25,6 @@ export function MessageList({
 }: MessageListProps) {
   return (
     <section className="message-list" aria-label="メッセージ一覧">
-      <button type="button" onClick={() => clearMessages()}>
-        全ての履歴を削除
-      </button>
       {messages.length === 0 ? (
         <p className="empty-message">
           {hasSearch

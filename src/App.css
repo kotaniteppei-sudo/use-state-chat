@@ -5,8 +5,27 @@
   font-synthesis: none;
 }
 
-input {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+button,
+textarea {
   font: inherit;
+}
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #b45309;
 }
 
 button:disabled {
@@ -14,8 +33,65 @@ button:disabled {
   opacity: 0.55;
 }
 
+input {
+  font: inherit;
+}
+
 input:focus-visible {
   outline: 2px solid #b45309;
+}
+
+.page-shell {
+  width: min(960px, calc(100% - 32px));
+  margin: 32px auto;
+  display: grid;
+  gap: 24px;
+}
+
+.chat-app.api-panel {
+  width: min(760px, calc(100% - 32px));
+  margin: 32px auto;
+  overflow: hidden;
+  border: 1px solid #ccd8e8;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 16px 42px rgb(37 56 88 / 12%);
+}
+
+.chat-header {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  color: #fff;
+  background: linear-gradient(135deg, #174f9f, #2d78d4);
+}
+
+.chat-header h1 {
+  margin: 0;
+}
+
+.count-badge {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #174f9f;
+  background: #fff;
+  font-weight: 800;
+}
+
+.notice,
+.form-error,
+.edit-help,
+.api-error {
+  margin: 16px 24px 0;
+  padding: 12px 14px;
+  border: 1px solid #efb0a9;
+  border-radius: 10px;
+  color: #8a1c13;
+  text-align: center;
+  background: #fff0ee;
 }
 
 .search-panel {
@@ -24,8 +100,6 @@ input:focus-visible {
 }
 
 .search-panel h2 {
-  margin: 0 0 4px;
-  font-size: 1.1rem;
 }
 
 .search-row {
@@ -70,71 +144,6 @@ input:focus-visible {
   border-radius: 8px;
   color: #15457f;
   background: #f2f7ff;
-}
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
-button,
-textarea {
-  font: inherit;
-}
-button {
-  cursor: pointer;
-}
-
-button:focus-visible,
-textarea:focus-visible {
-  outline: 3px solid #b45309;
-}
-
-.chat-app {
-  width: min(760px, calc(100% - 32px));
-  margin: 32px auto;
-  overflow: hidden;
-  border: 1px solid #ccd8e8;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 16px 42px rgb(37 56 88 / 12%);
-}
-
-.chat-header {
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  color: #fff;
-  background: linear-gradient(135deg, #174f9f, #2d78d4);
-}
-
-.chat-header h1 {
-  margin: 0;
-}
-
-.count-badge {
-  flex: 0 0 auto;
-  padding: 10px 14px;
-  border-radius: 999px;
-  color: #174f9f;
-  background: #fff;
-  font-weight: 800;
-}
-
-.notice {
-  margin: 16px 24px 0;
-  padding: 12px 14px;
-  border: 1px solid #efb0a9;
-  border-radius: 10px;
-  color: #8a1c13;
-  text-align: center;
-  background: #fff0ee;
 }
 
 .message-list {
@@ -205,7 +214,57 @@ textarea:focus-visible {
   font-weight: 700;
 }
 
+.edit-help {
+  margin-top: 8px !important;
+  padding: 8px;
+  border-radius: 8px;
+}
+.failure-toggle {
+  padding: 14px 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #526175;
+  font-size: 0.9rem;
+}
+
+.form-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.api-panel {
+  padding: 24px;
+}
+
+.api-panel fieldset {
+  margin: 0 0 16px;
+  display: flex;
+  gap: 16px;
+  border: 1px solid #ccd8e8;
+  border-radius: 10px;
+}
+
+.api-panel label {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.api-error {
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.api-error p {
+  margin-top: 0;
+}
+
 @media (max-width: 640px) {
+  .page-shell {
+    width: 96%;
+    margin: 8px auto;
+  }
   .chat-header {
     padding-block: 16px;
     font-size: 0.8rem;
@@ -223,19 +282,36 @@ textarea:focus-visible {
   }
 
   .search-panel {
-    padding: 8px 32px;
-    font-size: 0.9rem;
+    display: flex;
+    padding: 8px 16px;
+    font-size: 0.8rem;
     background-color: #fff;
   }
 
   #search-heading {
-    margin: 0;
-    font-size: 0.9rem;
+    width: 26%;
+    place-self: center;
+    font-size: 0.8rem;
+  }
+
+  .search-row {
+    display: flex;
+    width: 74%;
+  }
+  .message-search {
+    /* width: 28%; */
+  }
+  .search-row > p {
+    width: 28%;
+    letter-spacing: -0.07rem;
+  }
+  .search-row button {
+    width: 32%;
   }
 
   .search-row input,
   .search-row button {
-    padding: 4px 8px;
+    padding: 4px;
   }
 
   .message-list {

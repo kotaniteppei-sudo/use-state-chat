@@ -8,35 +8,39 @@ import {
 
 type MessageFormProps = {
   draftMessage: string;
+  isSending: boolean;
+  sendError: string | null;
   onDraftMessageChange: (value: string) => void;
-  onSend: () => boolean;
+  onSend: () => Promise<boolean>;
 };
 
 export function MessageForm({
   draftMessage,
+  isSending,
+  sendError,
   onDraftMessageChange,
   onSend,
 }: MessageFormProps) {
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const validationMessage = validateMessage(draftMessage);
   const showValidationError = submitAttempted && validationMessage !== null;
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const describedBy = [
     "message-help",
     "message-count",
     showValidationError ? "message-error" : null,
+    sendError === null ? null : "send-error",
   ]
     .filter((value): value is string => value !== null)
     .join(" ");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (showValidationError) return;
-
     setSubmitAttempted(true);
 
-    if (onSend()) setSubmitAttempted(false);
+    const succeeded = await onSend();
+    if (succeeded) setSubmitAttempted(false);
     inputRef.current?.focus();
   }
 
@@ -72,7 +76,12 @@ export function MessageForm({
       {showValidationError && validationMessage !== null ? (
         <FormError id="message-error">{validationMessage}</FormError>
       ) : null}
-      <button type="submit">送信</button>
+      {sendError === null ? null : (
+        <FormError id="send-error">{sendError}</FormError>
+      )}
+      <button type="submit" disabled={isSending}>
+        {isSending ? "送信中..." : "送信"}
+      </button>
     </form>
   );
 }

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { STORAGE_KEY, STORAGE_SCHEMA_VERSION } from "./storage/chatStorage";
 
-describe("教材05の型と保存境界", () => {
+describe("教材06の型の非同期通信", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
@@ -141,5 +141,45 @@ describe("教材05の型と保存境界", () => {
       isComposing: false,
     });
     expect(screen.getByText("変換中の本文")).toBeInTheDocument();
+  });
+
+  it("履歴取得のerrorを表示し、再試行操作を提供する", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("radio", { name: "error" }));
+
+    expect(
+      await screen.findByText("履歴を読み込めませんでした。"),
+    ).toBeInTheDocument();
+    expect(await screen.getByRole("button", { name: "再試行" })).toBeEnabled();
+  });
+
+  it("送信失敗時に入力を保持して再試行可能にする", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(<App />);
+
+    const failOnce = screen.getByRole("checkbox", {
+      name: "次の送信を失敗させる（教材用）",
+    });
+
+    await user.click(failOnce);
+    const input = screen.getByRole("textbox", { name: "メッセージ" });
+    await user.type(input, "失敗しても残る");
+    await user.click(screen.getByRole("button", { name: "送信" }));
+
+    expect(
+      await screen.findByText(/入力を残したまま再試行/),
+    ).toBeInTheDocument();
+    expect(input).toHaveValue("失敗しても残る");
+    expect(failOnce).not.toBeChecked();
+
+    await user.click(screen.getByRole("button", { name: "送信" }));
+    expect(
+      within(await screen.findByRole("article")).getByText("失敗しても残る"),
+    ).toBeInTheDocument();
+    expect(input).toHaveValue("");
   });
 });

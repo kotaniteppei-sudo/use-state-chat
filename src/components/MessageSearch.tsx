@@ -15,7 +15,12 @@ export function MessageSearch({
     <section className="search-panel" aria-labelledby="search-heading">
       <h2 id="search-heading">メッセージ検索</h2>
       <div className="search-row">
-        <label htmlFor="message-search">本文を検索</label>
+        <label htmlFor="message-search" className="sr-only">
+          本文を検索
+        </label>
+        <p aria-label="検索結果件数" aria-live="polite" role="status">
+          {visibleCount} / {totalCount}件
+        </p>
         <input
           id="message-search"
           type="search"
@@ -30,9 +35,6 @@ export function MessageSearch({
           クリア
         </button>
       </div>
-      <p aria-label="検索結果件数" aria-live="polite" role="status">
-        {visibleCount} / {totalCount}件
-      </p>
     </section>
   );
 }
