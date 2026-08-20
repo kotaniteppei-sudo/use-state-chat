@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import {
   clearMessages,
   LEGACY_STORAGE_KEY,
@@ -8,6 +9,7 @@ import {
   STORAGE_KEY,
   STORAGE_SCHEMA_VERSION,
 } from "./chatStorage";
+
 import type { ChatMessage } from "../types/chat";
 
 const VALID_MESSAGE: ChatMessage = {
