@@ -1,0 +1,20 @@
+1:"$Sreact.fragment"
+2:I[22016,["/_next/static/chunks/1mpnoxox0-4cg.js"],""]
+3:I[97367,["/_next/static/chunks/1mpnoxox0-4cg.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+8:I[97367,["/_next/static/chunks/1mpnoxox0-4cg.js"],"ViewportBoundary"]
+9:I[97367,["/_next/static/chunks/1mpnoxox0-4cg.js"],"MetadataBoundary"]
+b:I[39756,["/_next/static/chunks/1mpnoxox0-4cg.js"],"default"]
+c:I[37457,["/_next/static/chunks/1mpnoxox0-4cg.js"],"default"]
+:HL["/_next/static/chunks/1g4a54c3uhr97.css","style"]
+7:X
+0:{"buildId":"RiR7FkyGDpr3b_Xn4q-JN","data":[{"rsc":["$","$1","c",{"children":[["$","section",null,{"className":"page-copy","aria-labelledby":"chat-title","children":[["$","h1",null,{"id":"chat-title","children":"Training Chat"}],["$","p",null,{"children":"このrouteへ、次の教材でinteractiveなチャットを追加します。"}],["$","$L2",null,{"href":"layout","children":"チャット機能の詳細"}]]}],null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":"$@6","staleTime":"$7","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L8",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L9",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Training Chat | Next Chat Training"}],["$","meta","1",{"name":"description","content":"Next.js App Routerの研修アプリ"}]]}]}]}],null]}],"isPartial":"$@a","staleTime":"$7","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","div",null,{"className":"chat-subtree","children":[["$","nav",null,{"style":{"padding":"8px 0","borderBottom":"1px dashed #ccc","marginBottom":"16px"},"children":[["$","small",null,{"children":"Chatメニュー："}],["$","$L2",null,{"href":"/chat","style":{"marginRight":"12px"},"children":"チャットトップ"}]]}],["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}]}]]}]]}],"isPartial":"$@d","staleTime":"$7","varyParams":null},{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/1g4a54c3uhr97.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/1mpnoxox0-4cg.js","async":true}]],["$","html",null,{"lang":"ja","children":["$","body",null,{"children":[["$","header",null,{"className":"site-header","children":["$","div",null,{"className":"site-header__inner","children":["$","nav",null,{"className":"site-nav","aria-label":"メインナビゲーション","children":[["$","$L2","/",{"href":"/","children":"Home"}],["$","$L2","./chat",{"href":"./chat","children":"Chat"}],["$","$L2","./about",{"href":"./about","children":"About"}],["$","$L2","./guide",{"href":"./guide","children":"Guide"}]]}]}]}],["$","main",null,{"className":"app-main","children":["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}],"notFound":[["$","section",null,{"aria-labelledby":"not-found-title","children":[["$","h1",null,{"id":"not-found-title","children":"ページが見つかりません"}],["$","p",null,{"children":"URLを確認するか、チャット画面へ戻ってください。"}],["$","$L2",null,{"href":"/chat","children":"チャットへ戻る"}]]}],[]]}]}]]}]}]]}],"isPartial":"$@e","staleTime":"$7","varyParams":null}],"isUpgradeableISRFallback":false,"a":"$@f","rootVaryParams":null,"needsRuntimeRequest":"$@10"}
+5:null
+7:300
+10:true
+7:C
+f:0
+a:"$undefined"
+d:"$undefined"
+e:"$undefined"
+6:"$undefined"

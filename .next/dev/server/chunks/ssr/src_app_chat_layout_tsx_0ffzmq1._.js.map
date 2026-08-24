@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/kotaniteppei/Development/use-state-chat/src/app/chat/layout.tsx"],"sourcesContent":["import type { ReactNode } from \"react\";\nimport Link from \"next/link\";\n\nexport default function chatLayout({\n  children,\n}: Readonly<{ children: ReactNode }>) {\n  return (\n    <div className=\"chat-subtree\">\n      <nav\n        style={{\n          padding: \"8px 0\",\n          borderBottom: \"1px dashed #ccc\",\n          marginBottom: \"16px\",\n        }}\n      >\n        <small>Chatメニュー：</small>\n        <Link href=\"/chat\" style={{ marginRight: \"12px\" }}>\n          チャットトップ\n        </Link>\n      </nav>\n      {children}\n    </div>\n  );\n}\n"],"names":["chatLayout","children","className","style","padding","borderBottom","marginBottom","href","marginRight"],"mappings":";;;;;AACA;;;AAEe,SAASA,WAAW,EACjCC,QAAQ,EAC0B;IAClC,qBACE,8OAAC;QAAIC,WAAU;;0BACb,8OAAC;gBACCC,OAAO;oBACLC,SAAS;oBACTC,cAAc;oBACdC,cAAc;gBAChB;;kCAEA,8OAAC;kCAAM;;;;;;kCACP,8OAAC,0LAAI;wBAACC,MAAK;wBAAQJ,OAAO;4BAAEK,aAAa;wBAAO;kCAAG;;;;;;;;;;;;YAIpDP;;;;;;;AAGP"}}]
+}
