@@ -28,7 +28,7 @@ a {
   border-bottom: 1px solid #dce4ef;
 }
 
-.site-header__inner {
+.site-header_inner {
   justify-content: space-between;
   align-items: center;
   gap: 1.5rem;
@@ -60,16 +60,39 @@ a {
   max-width: 46rem;
 }
 
+.chat-panel {
+  gap: 1rem;
+  display: grid;
+}
+
+.chat-panel form {
+  gap: .5rem;
+  max-width: 38rem;
+  display: grid;
+}
+
+.chat-panel textarea {
+  font: inherit;
+  min-height: 6rem;
+  padding: .75rem;
+}
+
+.chat-panel button {
+  font: inherit;
+  justify-self: start;
+  padding: .6rem 1.2rem;
+}
+
 @media (max-width: 520px) {
-  .site-header__inner {
+  .site-header_inner {
     flex-direction: column;
     align-items: flex-start;
     gap: .75rem;
   }
-}
 
-.app-main {
-  padding-top: 1.25rem;
+  .app-main {
+    padding-top: 1.25rem;
+  }
 }
 
 /*# sourceMappingURL=src_app_globals_162hn9o.css.map*/

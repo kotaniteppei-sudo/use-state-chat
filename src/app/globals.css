@@ -1,26 +1,32 @@
 :root {
   color-scheme: light;
 }
+
 * {
   box-sizing: border-box;
 }
+
 html,
 body {
   margin: 0;
   min-height: 100%;
 }
+
 body {
   background: #f4f7fb;
   color: #17223b;
 }
+
 a {
   color: inherit;
 }
+
 .site-header {
   background: #ffffff;
   border-bottom: 1px solid #dce4ef;
 }
-.site-header__inner {
+
+.site-header_inner {
   align-items: center;
   display: flex;
   gap: 1.5rem;
@@ -29,32 +35,60 @@ a {
   max-width: 960px;
   padding: 1rem;
 }
+
 .site-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
 }
+
 .site-nav a,
 .text-link {
   color: #1f5eb6;
   font-weight: 700;
   text-underline-offset: 0.2em;
 }
+
 .app-main {
   margin: 0 auto;
   max-width: 960px;
   padding: 2rem 1rem 4rem;
 }
+
 .page-copy {
   max-width: 46rem;
 }
+
+.chat-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.chat-panel form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 38rem;
+}
+
+.chat-panel textarea {
+  font: inherit;
+  min-height: 6rem;
+  padding: 0.75rem;
+}
+
+.chat-panel button {
+  font: inherit;
+  justify-self: start;
+  padding: 0.6rem 1.2rem;
+}
+
 @media (max-width: 520px) {
-  .site-header__inner {
+  .site-header_inner {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.75rem;
   }
-}
-.app-main {
-  padding-top: 1.25rem;
+  .app-main {
+    padding-top: 1.25rem;
+  }
 }

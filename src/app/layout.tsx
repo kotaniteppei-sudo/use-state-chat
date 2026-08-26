@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { primaryRoutes } from "./routes";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,12 +19,11 @@ export default function RootLayout({
       <body>
         <header className="site-header">
           <div className="site-header__inner">
+            <strong>Next Chat</strong>
             <nav className="site-nav" aria-label="メインナビゲーション">
-              {primaryRoutes.map((route) => (
-                <Link key={route.href} href={route.href}>
-                  {route.label}
-                </Link>
-              ))}
+              <Link href={"/"}>Home</Link>
+              <Link href={"/chat"}>Chat</Link>
+              <Link href={"/about"}>About</Link>
             </nav>
           </div>
         </header>
