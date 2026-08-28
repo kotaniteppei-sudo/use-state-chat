@@ -60,29 +60,6 @@ a {
   max-width: 46rem;
 }
 
-.chat-panel {
-  gap: 1rem;
-  display: grid;
-}
-
-.chat-panel form {
-  gap: .5rem;
-  max-width: 38rem;
-  display: grid;
-}
-
-.chat-panel textarea {
-  font: inherit;
-  min-height: 6rem;
-  padding: .75rem;
-}
-
-.chat-panel button {
-  font: inherit;
-  justify-self: start;
-  padding: .6rem 1.2rem;
-}
-
 @media (max-width: 520px) {
   .site-header_inner {
     flex-direction: column;

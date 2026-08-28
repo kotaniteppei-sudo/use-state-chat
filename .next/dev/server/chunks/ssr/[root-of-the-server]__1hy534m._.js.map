@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///Users/kotaniteppei/Development/use-state-chat/src/app/chat/page.tsx"],"sourcesContent":["import { ChatFeature } from \"../features/chat/components/ChatFeature\";\nimport type { Metadata } from \"next\";\nimport Link from \"next/link\";\n\nexport const metadata: Metadata = {\n  title: \"Training Chat\",\n};\n\nexport default function ChatPage() {\n  return (\n    <section className=\"page-copy\" aria-labelledby=\"chat-title\">\n      <h1 id=\"chat-title\">Training Chat</h1>\n      <p>このrouteへ、次の教材でinteractiveなチャットを追加します。</p>\n      <Link href=\"layout\">チャット機能の詳細</Link>\n      <ChatFeature />\n    </section>\n  );\n}\n"],"names":["metadata","title","ChatPage","className","id","href","ChatFeature"],"mappings":";;;;;;;;;;;;AAEA;;;;AAEO,MAAMA,WAAqB;IAChCC,OAAO;AACT;AAEe,SAASC;IACtB,qBACE,8OAAC;QAAQC,WAAU;QAAY,mBAAgB;;0BAC7C,8OAAC;gBAAGC,IAAG;0BAAa;;;;;;0BACpB,8OAAC;0BAAE;;;;;;0BACH,8OAAC,0LAAI;gBAACC,MAAK;0BAAS;;;;;;0BACpB,8OAACC;;;;;;;;;;;AAGP"}}]
-}

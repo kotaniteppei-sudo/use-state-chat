@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///Users/kotaniteppei/Development/use-state-chat/src/app/guide/page.tsx"],"sourcesContent":["import { Metadata } from \"next\";\n\nexport const metadata: Metadata = {\n  title: \"ガイドページ\",\n};\n\nexport default function GuidePage() {\n  return <h1>ガイドページ</h1>;\n}\n"],"names":["metadata","title","GuidePage"],"mappings":";;;;;;;;AAEO,MAAMA,WAAqB;IAChCC,OAAO;AACT;AAEe,SAASC;IACtB,qBAAO,8OAAC;kBAAG;;;;;;AACb"}}]
-}

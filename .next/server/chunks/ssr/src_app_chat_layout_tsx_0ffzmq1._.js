@@ -1,3 +1,0 @@
-module.exports=[28752,a=>{"use strict";var b=a.i(7997),c=a.i(95936);a.s(["default",0,function({children:a}){return(0,b.jsxs)("div",{className:"chat-subtree",children:[(0,b.jsxs)("nav",{style:{padding:"8px 0",borderBottom:"1px dashed #ccc",marginBottom:"16px"},children:[(0,b.jsx)("small",{children:"Chatメニュー："}),(0,b.jsx)(c.default,{href:"/chat",style:{marginRight:"12px"},children:"チャットトップ"})]}),a]})}])},20757,function(a){a.n(a.i(28752))}];
-
-//# sourceMappingURL=src_app_chat_layout_tsx_0ffzmq1._.js.map
