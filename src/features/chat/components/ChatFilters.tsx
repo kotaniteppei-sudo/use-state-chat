@@ -3,16 +3,16 @@
 import { Button, Stack, TextField, Typography } from "@mui/material";
 import type { ChatMessage } from "../model/ChatMessage";
 import { filterMessages } from "../model/messageOperations";
+import { useChatUiStore } from "../store/ChatUiStoreProvider";
 
 export function ChatFilters({
   messages,
-  searchText,
-  onSearchTextChange,
 }: {
   messages: readonly ChatMessage[];
-  searchText: string;
-  onSearchTextChange: (value: string) => void;
 }) {
+  const searchText = useChatUiStore((state) => state.searchText);
+  const setSearchText = useChatUiStore((state) => state.setSearchText);
+  const clearSearchText = useChatUiStore((state) => state.clearSearchText);
   const visibleCount = filterMessages(messages, searchText).length;
 
   return (
@@ -25,12 +25,9 @@ export function ChatFilters({
         fullWidth
         label="検索"
         value={searchText}
-        onChange={(event) => onSearchTextChange(event.target.value)}
+        onChange={(event) => setSearchText(event.target.value)}
       />
-      <Button
-        onClick={() => onSearchTextChange("")}
-        disabled={searchText === ""}
-      >
+      <Button onClick={clearSearchText} disabled={searchText === ""}>
         クリア
       </Button>
       <Typography aria-live="polite" sx={{ minWidth: "4rem" }}>

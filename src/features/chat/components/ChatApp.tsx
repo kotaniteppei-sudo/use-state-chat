@@ -1,7 +1,7 @@
 "use client";
 
-import { Alert, Snackbar } from "@mui/material";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, CircularProgress, Snackbar, Box } from "@mui/material";
+import { useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/common/EmptyState";
 import type { ChatMessage } from "../model/ChatMessage";
 import type { PublicChatConfig } from "../model/PublicChatConfig";
@@ -11,27 +11,30 @@ import {
   replaceMessageText,
   validateMessage,
 } from "../model/messageOperations";
-import {
-  loadStoredMessages,
-  saveStoredMessages,
-} from "../services/storedMessages";
 import { ChatFilters } from "./ChatFilters";
 import { ChatShell } from "./ChatShell";
 import { DeleteMessageDialog } from "./DeleteMessageDialog";
 import { MessageForm } from "./MessageForm";
 import { MessageList } from "./MessageList";
+import { MessageRepository } from "../services/messageRepository";
+import { useStoredMessages } from "../hooks/useStoredMessages";
+import { useChatUiStore } from "../store/ChatUiStoreProvider";
+import { RoomControls } from "./RoomControls";
 
 async function deliverLocally(): Promise<void> {}
 
 export function ChatApp({
   config,
+  repository,
   deliverMessage = deliverLocally,
 }: {
   config: PublicChatConfig;
+  repository: MessageRepository;
   deliverMessage?: (message: ChatMessage) => Promise<void>;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [searchText, setSearchText] = useState("");
+  const { loaded, messages, saveFailed, setMessages } =
+    useStoredMessages(repository);
+  const searchText = useChatUiStore((state) => state.searchText);
   const [draftMessage, setDraftMessage] = useState("");
   const [showDraftValidation, setShowDraftValidation] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -42,45 +45,6 @@ export function ChatApp({
   const [deleteTarget, setDeleteTarget] = useState<ChatMessage | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [deliveryError, setDeliveryError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [storageError, setStorageError] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    let storedMessages: ChatMessage[] = [];
-
-    try {
-      storedMessages = loadStoredMessages(
-        localStorage,
-        config.maxMessageLength,
-        new Date().toISOString(),
-      );
-    } catch {
-      queueMicrotask(() => {
-        if (active) setStorageError(true);
-      });
-    }
-
-    queueMicrotask(() => {
-      if (!active) return;
-      setMessages(storedMessages);
-      setLoaded(true);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [config.maxMessageLength]);
-
-  useEffect(() => {
-    if (!loaded) return;
-
-    try {
-      saveStoredMessages(localStorage, messages);
-    } catch {
-      queueMicrotask(() => setStorageError(true));
-    }
-  }, [loaded, messages]);
 
   const visibleMessages = useMemo(
     () => filterMessages(messages, searchText),
@@ -94,8 +58,8 @@ export function ChatApp({
   async function handleSend(): Promise<boolean> {
     if (sendingRef.current) return false;
     setShowDraftValidation(true);
-
     if (validateMessage(draftMessage, config.maxMessageLength)) return false;
+
     const message: ChatMessage = {
       id: crypto.randomUUID(),
       text: draftMessage.trim(),
@@ -104,16 +68,13 @@ export function ChatApp({
 
     sendingRef.current = true;
     setIsSending(true);
-
-    setDeliveryError(false);
-
     try {
       await deliverMessage(message);
-
       setMessages((previous) => [...previous, message]);
       setDraftMessage("");
       setShowDraftValidation(false);
       setNotification("メッセージを送信しました。");
+      setDeliveryError(false);
       return true;
     } catch {
       setDeliveryError(true);
@@ -166,23 +127,27 @@ export function ChatApp({
   }
   return (
     <ChatShell>
-      <ChatFilters
-        messages={messages}
-        searchText={searchText}
-        onSearchTextChange={setSearchText}
-      />
+      <RoomControls />
+      <ChatFilters messages={messages} />
       {deliveryError && (
         <Alert severity="error">メッセージを送信できませんでした。</Alert>
       )}
-      {storageError && (
-        <>
-          <Alert severity="error">履歴を保存できませんでした。</Alert>
-
-          <Snackbar open={true} message="メッセージを送信しました。" />
-        </>
+      {saveFailed && (
+        <Alert severity="error">
+          履歴を保存できませんでした。次の変更時に再試行します。
+        </Alert>
       )}
-
-      {visibleMessages.length === 0 ? (
+      {!loaded ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            minHeight: 100,
+          }}
+        >
+          <CircularProgress aria-label="履歴を読み込み中" />
+        </Box>
+      ) : visibleMessages.length === 0 ? (
         <EmptyState />
       ) : (
         <MessageList

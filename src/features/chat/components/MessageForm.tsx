@@ -83,7 +83,7 @@ export function MessageForm(props: MessageFormProps) {
           },
         }}
       >
-        {props.isSending ? "送信中" : "送信"}
+        {props.isSending ? "送信中..." : "送信"}
       </Button>
     </Stack>
   );

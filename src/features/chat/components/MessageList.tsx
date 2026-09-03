@@ -43,7 +43,9 @@ export function MessageList(props: MessageListProps) {
                 />
               ) : (
                 <>
-                  <Typography>{message.text}</Typography>
+                  <Typography sx={{ wordWrap: "break-word" }}>
+                    {message.text}
+                  </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {message.editedAt ? "編集済み" : "送信済み"}
                   </Typography>
