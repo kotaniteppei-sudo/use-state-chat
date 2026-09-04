@@ -6,6 +6,7 @@ import {
   replaceMessageText,
   validateMessage,
 } from "./messageOperations";
+
 const messages: ChatMessage[] = [
   { id: "1", text: "確認します", sentAt: "2026-01-01T00:00:00.000Z" },
   { id: "2", text: "資料を送ります", sentAt: "2026-01-02T00:00:00.000Z" },
@@ -18,6 +19,13 @@ describe("messageOperations", () => {
       "メッセージは5文字以内で入力してください。",
     );
     expect(validateMessage("12345", 5)).toBeNull();
+  });
+
+  it("200文字は送信でき、201文字はエラーになる", () => {
+    expect(validateMessage("a".repeat(200), 200)).toBeNull();
+    expect(validateMessage("a".repeat(201), 200)).toBe(
+      "メッセージは200文字以内で入力してください。",
+    );
   });
 
   it("検索を正規化し、元の配列を変更しない", () => {
@@ -39,5 +47,12 @@ describe("messageOperations", () => {
       editedAt: "2026-02-01T00:00:00.000Z",
     });
     expect(messages[0].editedAt).toBeUndefined();
+  });
+
+  it("指定したeditedAtでメッセージが更新される", () => {
+    const FIX_TIME = "2030-01-01T00:00:00.000Z";
+    const result = replaceMessageText(messages, "1", "確認しました", FIX_TIME);
+
+    expect(result[0].editedAt).toBe(FIX_TIME);
   });
 });

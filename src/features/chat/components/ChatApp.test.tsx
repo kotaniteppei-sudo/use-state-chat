@@ -59,7 +59,6 @@ describe("ChatApp", () => {
       screen.getByRole("textbox", { name: "メッセージ" }),
       "動作確認",
     );
-    screen.debug();
     await user.click(screen.getByRole("button", { name: "送信" }));
     expect(await screen.findByText("動作確認")).toBeInTheDocument();
     await waitFor(() => expect(memory.read()).toHaveLength(1));
@@ -201,5 +200,37 @@ describe("ChatApp", () => {
         "履歴を保存できませんでした。次の変更時に再試行します。",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("編集ボタンから保存までを実行し、固定されたeditedAtを確認する", async () => {
+    const OLD_TIME = "2020-01-01T00:00:00Z";
+    const FAKE_TIME = new Date("2026-01-01T00:00:00Z").toISOString();
+
+    const target = {
+      id: "target",
+      text: "テスト対象",
+      sentAt: OLD_TIME,
+    };
+    const memory = createMemoryRepository([target]);
+    renderChatApp(memory.repository);
+
+    await screen.findByText("テスト対象");
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(FAKE_TIME));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "「テスト対象」を編集" }),
+    );
+
+    const editTextbox = screen.getByRole("textbox", { name: "メッセージ" });
+    fireEvent.change(editTextbox, { target: { value: "テスト対象" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+
+    const savedMessages = memory.read();
+    expect(savedMessages[0].text).toBe("テスト対象");
+    expect(savedMessages[0].editedAt).toBe(FAKE_TIME);
+
+    vi.useRealTimers();
   });
 });

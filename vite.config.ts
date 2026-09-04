@@ -16,5 +16,6 @@ export default defineConfig({
       jsdom: { url: "http://localhodt:3413" },
     },
     setupFiles: ["./src/test/setup.ts"],
+    css: true,
   },
 });
