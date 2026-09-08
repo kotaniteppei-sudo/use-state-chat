@@ -10,11 +10,11 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.{ts,tsx}"],
     environment: "jsdom",
     environmentOptions: {
       jsdom: { url: "http://localhodt:3413" },
     },
+    include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test/setup.ts"],
     css: true,
   },

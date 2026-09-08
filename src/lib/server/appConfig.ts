@@ -11,6 +11,8 @@ function requireEnvironmentVariable(name: string): string {
 
 export function getServerConfig() {
   return {
-    InternalApiToken: requireEnvironmentVariable("INTERNAL_API_TOKEN"),
+    InternalApiToken: requireEnvironmentVariable(
+      "NEXT_PUBLIC_FIREBASE_API_KEY",
+    ),
   } as const;
 }

@@ -1,5 +1,5 @@
 {
-  "name": "training-checkpoint-12",
+  "name": "training-checkpoint-14",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -14,12 +14,14 @@
     "build": "next build",
     "prestart": "node scripts/check-env.mjs",
     "start": "next start",
-    "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint src tests --max-warnings=0",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:e2e": "playwright test",
-    "check:secret": "node scripts/check-client-secret.mjs"
+    "check:secret": "node scripts/check-client-secret.mjs",
+    "emulators": "firebase emulators:start --project demo-training-chat --only auth"
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
@@ -29,6 +31,8 @@
     "@mui/material": "9.2.0",
     "@mui/material-nextjs": "9.1.1",
     "@next/env": "16.3.0",
+    "firebase": "12.17.1",
+    "firebase-tools": "15.25.1",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -43,10 +47,12 @@
     "@types/node": "22.17.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
+    "@types/react-test-renderer": "^19.1.0",
     "@vitejs/plugin-react": "6.0.5",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.0",
     "jsdom": "30.0.1",
+    "react-test-renderer": "^19.2.8",
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   }
