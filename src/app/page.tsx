@@ -3,16 +3,16 @@
 import { AuthForm } from "@/auth/AuthForm";
 import { AuthProvider, useAuth } from "@/auth/AuthProvider";
 import { createAuthService } from "@/auth/authService";
-import { bootstrapFirebaseAuth } from "@/firebase/bootstrap";
+import { bootstrapFirebaseClient } from "../firebase/bootstrap";
 
-const { auth } = bootstrapFirebaseAuth({
+const { auth } = bootstrapFirebaseClient({
   firebaseConfig: {
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   },
-  useEmulator: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true",
+  useEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true",
 });
 
 const authService = createAuthService(auth);

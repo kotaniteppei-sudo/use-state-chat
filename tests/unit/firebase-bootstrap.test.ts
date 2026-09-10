@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { initializeAuthInOrder } from "../../src/firebase/bootstrap";
+import { initializeFirebaseInOrder } from "../../src/firebase/bootstrap";
 
-describe("Firebase Auth bootstrap", () => {
-  it("appを作成してからAuthを取得する", () => {
+describe("Firebase Auth/ Firestore bootstrap", () => {
+  it("appの後にAuth、Firestoreを取得する", () => {
     const order: string[] = [];
-
-    const result = initializeAuthInOrder({
+    const result = initializeFirebaseInOrder({
       app: () => {
         order.push("app");
         return { id: "app" };
@@ -14,9 +13,13 @@ describe("Firebase Auth bootstrap", () => {
         order.push("auth");
         return { id: "auth" };
       },
+      firestore: () => {
+        order.push("firestore");
+        return { id: "firestore" };
+      },
     });
 
-    expect(order).toEqual(["app", "auth"]);
-    expect(result.auth).toEqual({ id: "auth" });
+    expect(order).toEqual(["app", "auth", "firestore"]);
+    expect(result.db).toEqual({ id: "firestore" });
   });
 });
