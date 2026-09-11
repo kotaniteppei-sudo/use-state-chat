@@ -4,6 +4,7 @@ import { AuthForm } from "@/auth/AuthForm";
 import { AuthProvider, useAuth } from "@/auth/AuthProvider";
 import { createAuthService } from "@/auth/authService";
 import { bootstrapFirebaseClient } from "../firebase/bootstrap";
+import { SimpleUploader } from "./SimpleUploader";
 
 const { auth } = bootstrapFirebaseClient({
   firebaseConfig: {
@@ -40,10 +41,15 @@ function AppContent() {
   }
 
   return (
-    <div style={{ padding: "20px", border: "2px solid blue" }}>
-      <h2>ログイン / 新規登録</h2>
-      <AuthForm service={authService} />
-    </div>
+    <>
+      <div style={{ padding: "20px", border: "2px solid blue" }}>
+        <h2>ログイン / 新規登録</h2>
+        <AuthForm service={authService} />
+      </div>
+      <div>
+        <SimpleUploader />
+      </div>
+    </>
   );
 }
 

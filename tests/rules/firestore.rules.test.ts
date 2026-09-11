@@ -148,6 +148,10 @@ describe("lesson 16 Firestore Rules", () => {
       "rooms/room-a/messages/message-a",
     );
     await assertFails(updateDoc(target, { senderId: "member" }));
+    await assertFails(
+      updateDoc(target, { createdAt: Timestamp.fromMillis(2) }),
+    );
+    await assertFails(updateDoc(target, { attachment: "dummy.png" }));
     await assertFails(updateDoc(target, { isAdmin: true }));
   });
 
