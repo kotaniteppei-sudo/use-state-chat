@@ -21,7 +21,6 @@ function pdf(name: string): File {
 describe("useAttachmentUpload", () => {
   it("進捗と成功metadataを反映する", async () => {
     let callbacks: AttachmentUploadCallbacks | undefined;
-
     const adapter: AttachmentUploadAdapter = {
       start: vi.fn((path, file, next) => {
         callbacks = next;
@@ -39,9 +38,9 @@ describe("useAttachmentUpload", () => {
     await act(async () => {
       renderer = TestRenderer.create(createElement(Probe));
     });
-    await act(async () => hook?.start("room-a", "use-a", pdf("guide.pdf")));
-    await act(async () => callbacks?.progress(0.5));
+    await act(async () => hook?.start("room-a", "user-a", pdf("guide.pdf")));
 
+    await act(async () => callbacks?.progress(0.5));
     expect(hook?.state).toEqual({ status: "uploading", progress: 0.5 });
 
     const attachment: AttachmentMetadata = {
@@ -51,8 +50,8 @@ describe("useAttachmentUpload", () => {
       displayName: "guide.pdf",
     };
     await act(async () => callbacks?.complete(attachment));
-
     expect(hook?.state).toEqual({ status: "success", attachment });
+
     await act(async () => renderer.unmount());
   });
 
@@ -80,12 +79,12 @@ describe("useAttachmentUpload", () => {
       hook = useAttachmentUpload(adapter);
       return null;
     }
+
     let renderer: TestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = TestRenderer.create(createElement(Probe));
     });
-
-    await act(async () => hook?.start("room-a", "user-s", pdf("first.pdr")));
+    await act(async () => hook?.start("room-a", "user-a", pdf("first.pdf")));
     await act(async () => hook?.start("room-a", "user-a", pdf("second.pdf")));
 
     expect(runs[0]?.cancel).toHaveBeenCalledOnce();
@@ -93,7 +92,10 @@ describe("useAttachmentUpload", () => {
 
     await act(async () => runs[0]?.callbacks.error("storage/canceled"));
     expect(hook?.state.status).toBe("uploading");
+
     await act(async () => renderer.unmount());
+    expect(runs[1]?.cancel).toHaveBeenCalledOnce();
+    expect(runs[1]?.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("不正fileへの再選択でも旧taskを停止しvalidation errorを維持する", async () => {
@@ -101,7 +103,7 @@ describe("useAttachmentUpload", () => {
     const cancel = vi.fn(() => true);
     const unsubscribe = vi.fn();
     const adapter: AttachmentUploadAdapter = {
-      start: (_path, _file, next) => {
+      start: (path, file, next) => {
         callbacks = next;
         return { cancel, unsubscribe };
       },
@@ -112,12 +114,13 @@ describe("useAttachmentUpload", () => {
       hook = useAttachmentUpload(adapter);
       return null;
     }
+
     let renderer: TestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = TestRenderer.create(createElement(Probe));
     });
-
     await act(async () => hook?.start("room-a", "user-a", pdf("first.pdf")));
+
     const invalid = new File(["plain"], "notes.txt", { type: "text/plain" });
     await act(async () => hook?.start("room-a", "user-a", invalid));
 
@@ -127,7 +130,7 @@ describe("useAttachmentUpload", () => {
 
     await act(async () =>
       callbacks?.complete({
-        fullPath: "rooms/room-s/attachments/user-a/late",
+        fullPath: "rooms/room-a/attachments/user-a/late",
         contentType: "application/pdf",
         size: 4,
         displayName: "first.pdf",
@@ -141,7 +144,7 @@ describe("useAttachmentUpload", () => {
   it("明示cancelと一般errorを区別する", async () => {
     let callbacks: AttachmentUploadCallbacks | undefined;
     const adapter: AttachmentUploadAdapter = {
-      start: (_path, _file, next) => {
+      start: (path, file, next) => {
         callbacks = next;
         return { cancel: vi.fn(() => true), unsubscribe: vi.fn() };
       },
@@ -152,11 +155,13 @@ describe("useAttachmentUpload", () => {
       hook = useAttachmentUpload(adapter);
       return null;
     }
+
     let renderer: TestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = TestRenderer.create(createElement(Probe));
     });
     await act(async () => hook?.start("room-a", "user-a", pdf("guide.pdf")));
+
     await act(async () => callbacks?.error("storage/retry-limit-exceeded"));
     expect(hook?.state).toEqual({
       status: "error",

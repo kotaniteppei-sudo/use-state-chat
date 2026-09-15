@@ -37,19 +37,17 @@ export function initializeFirebaseInOrder<TApp, TAuth, TDb, TStorage>(
 }
 
 const bootstrapGlobal = globalThis as typeof globalThis & {
-  __trainingCheckpoint17EmulatorApps?: WeakSet<FirebaseApp>;
+  trainingCheckpoint17EmulatorApps?: WeakSet<FirebaseApp>;
 };
-
 const emulatorApps =
-  bootstrapGlobal.__trainingCheckpoint17EmulatorApps ??
+  bootstrapGlobal.trainingCheckpoint17EmulatorApps ??
   new WeakSet<FirebaseApp>();
-bootstrapGlobal.__trainingCheckpoint17EmulatorApps = emulatorApps;
+bootstrapGlobal.trainingCheckpoint17EmulatorApps = emulatorApps;
 
 function defaultFirebaseApp(config: FirebaseOptions): FirebaseApp {
   const existing = getApps().find(
     (candidate) => candidate.name === "[DEFAULT]",
   );
-
   if (!existing) return initializeApp(config);
   if (existing.options.projectId !== config.projectId) {
     throw new Error("既存Firebase appのproject IDが設定と一致しません。");
@@ -88,5 +86,6 @@ export function bootstrapFirebaseClient(options: {
     connectStorageEmulator(client.storage, "127.0.0.1", 9199);
     emulatorApps.add(client.firebaseApp);
   }
+
   return client;
 }

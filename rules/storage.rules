@@ -1,38 +1,35 @@
 rules_version = '2';
 service firebase.storage {
-    match /b/{bucket}/o {
-        function signedIn() {
-            return request.auth != null;
-        }
-
-        function isRoomMember(roomId) {
-            return signedIn()
-            && firestore.get(
-            /databases/(default)/documents/rooms/$(roomId)
-            ).data.memberIds is list
-            && request.auth.uid in firestore.get(
-            /databases/(default)/documents/rooms/$(roomId)
-            ).data.memberIds;
-        }
-
-        function validDeclaredTypeAndSize() {
-            return request.resource.size > 0 && (
-            (request.resource.contentType.matches('image/(jpeg|png)')
-            && request.resource.size <= 5 * 1024 * 1024)
-            || (request.resource.contentType == 'application/pdf'
-            && request.resource.size <= 10 * 1024 * 1024)
-            );
-        }
-        
-        match /rooms/{roomId}/attachments/{userId}/{fileId} {
-            allow read: if isRoomMember(roomId);
-            allow create: if isRoomMember(roomId)
-            && request.auth.uid == userId
-            && resource == null
-            && validDeclaredTypeAndSize();
-            allow delete: if isRoomMember(roomId)
-            && request.auth.uid == userId;
-            allow update: if false;
-        }
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
     }
+    function isRoomMember(roomId) {
+      return signedIn()
+        && firestore.get(
+          /databases/(default)/documents/rooms/$(roomId)
+        ).data.memberIds is list
+        && request.auth.uid in firestore.get(
+          /databases/(default)/documents/rooms/$(roomId)
+        ).data.memberIds;
+    }
+    function validDeclaredTypeAndSize() {
+      return request.resource.size > 0 && (
+        (request.resource.contentType.matches('image/(jpeg|png)')
+          && request.resource.size <= 5 * 1024 * 1024)
+        || (request.resource.contentType == 'application/pdf'
+          && request.resource.size <= 10 * 1024 * 1024)
+      );
+    }
+    match /rooms/{roomId}/attachments/{userId}/{fileId} {
+      allow read: if isRoomMember(roomId);
+      allow create: if isRoomMember(roomId)
+        && request.auth.uid == userId
+        && resource == null
+        && validDeclaredTypeAndSize();
+      allow delete: if isRoomMember(roomId)
+        && request.auth.uid == userId;
+      allow update: if false;
+    }
+  }
 }

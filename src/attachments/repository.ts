@@ -11,7 +11,7 @@ import {
   createAttachmentPath,
   validateAttachmentFile,
   type AttachmentMetadata,
-} from "@/contracts/attachment";
+} from "../contracts/attachment";
 
 export function createAttachmentRepository(storage: FirebaseStorage) {
   async function upload(
@@ -26,8 +26,8 @@ export function createAttachmentRepository(storage: FirebaseStorage) {
     const uploaded = await uploadBytes(ref(storage, fullPath), file, {
       contentType: file.type,
     });
-    const stored = await getMetadata(uploaded.ref);
 
+    const stored = await getMetadata(uploaded.ref);
     return attachmentMetadataFromStoredObject(file.name, stored);
   }
 

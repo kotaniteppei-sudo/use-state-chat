@@ -77,6 +77,7 @@ export function isAttachmentMetadata(
   }
   return true;
 }
+
 export function createAttachmentPath(roomId: string, userId: string): string {
   if (!roomId || roomId.includes("/") || !userId || userId.includes("/")) {
     throw new Error(

@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase/firestore";
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { parseChatMessageDocument } from "../../src/chat/model";
 
 const validBase = {
@@ -16,6 +16,7 @@ describe("chat converter runtime validation", () => {
       parseChatMessageDocument({ ...validBase, attachment: null }).attachment,
     ).toBeNull();
   });
+
   it("正式attachment metadataを受理する", () => {
     const attachment = {
       fullPath: "rooms/room-a/attachments/user-a/file-1",
@@ -23,7 +24,6 @@ describe("chat converter runtime validation", () => {
       size: 4,
       displayName: "guide.pdf",
     };
-
     expect(
       parseChatMessageDocument({ ...validBase, attachment }).attachment,
     ).toEqual(attachment);
@@ -34,7 +34,7 @@ describe("chat converter runtime validation", () => {
       parseChatMessageDocument({ ...validBase, text: " hello " }),
     ).toThrow();
     expect(() =>
-      parseChatMessageDocument({ ...validBase, text: "a".repeat(201) }),
+      parseChatMessageDocument({ ...validBase, text: "x".repeat(201) }),
     ).toThrow();
     expect(() =>
       parseChatMessageDocument({ ...validBase, createdAt: "now" }),
@@ -49,12 +49,11 @@ describe("chat converter runtime validation", () => {
     expect(() =>
       parseChatMessageDocument({ ...validBase, isAdmin: true }),
     ).toThrow();
-
     expect(() =>
       parseChatMessageDocument({
         ...validBase,
         attachment: {
-          fullPath: "room/room-a/attachments/user-a/file-1",
+          fullPath: "rooms/room-a/attachments/user-a/file-1",
           contentType: "image/png",
           size: 5 * 1024 * 1024 + 1,
           displayName: "large.png",

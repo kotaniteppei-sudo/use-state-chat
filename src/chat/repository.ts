@@ -1,15 +1,15 @@
-import { Auth } from "firebase/auth";
+import type { Auth } from "firebase/auth";
 import {
   addDoc,
-  deleteDoc,
   collection,
+  deleteDoc,
   doc,
   limit,
+  onSnapshot,
+  orderBy,
   query,
   serverTimestamp,
   updateDoc,
-  orderBy,
-  onSnapshot,
   type Firestore,
   type QueryDocumentSnapshot,
   type Unsubscribe,
@@ -17,8 +17,8 @@ import {
 import {
   chatMessageConverter,
   type AttachmentMetadata,
-  type ChatMessageDocument,
   type ChatMessage,
+  type ChatMessageDocument,
 } from "./model";
 
 export type SubscribeToRoomMessages = (
@@ -53,6 +53,7 @@ export function createChatRepository(services: { auth: Auth; db: Firestore }) {
   }): Promise<string> {
     const user = services.auth.currentUser;
     if (!user) throw new Error("ログインが必要です。");
+
     const text = input.text.trim();
     if (!text || text.length > 200) throw new Error("本文は1-200文字です。");
 
@@ -80,8 +81,11 @@ export function createChatRepository(services: { auth: Auth; db: Firestore }) {
     });
   }
 
-  function deleteMessage(roomId: string, messageId: string): Promise<void> {
-    return deleteDoc(doc(messagesCollection(roomId), messageId));
+  async function deleteMessage(
+    roomId: string,
+    messageId: string,
+  ): Promise<void> {
+    await deleteDoc(doc(messagesCollection(roomId), messageId));
   }
 
   const subscribeToRoomMessages: SubscribeToRoomMessages = (
@@ -109,6 +113,7 @@ export function createChatRepository(services: { auth: Auth; db: Firestore }) {
       onError,
     );
   };
+
   return {
     createMessage,
     updateMessageText,

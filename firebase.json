@@ -10,6 +10,6 @@
     "singleProjectMode": true
   },
   "storage": {
-    "rules": "storage.rules"
+    "rules": "rules/storage.rules"
   }
 }

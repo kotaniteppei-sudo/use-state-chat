@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { initializeFirebaseInOrder } from "../../src/firebase/bootstrap";
 
-describe("Firebase Auth/ Firestore/Storage bootstrap", () => {
+describe("Firebase Auth/Firestore/Storage bootstrap", () => {
   it("appの後にAuth、Firestore、Storageを取得する", () => {
     const order: string[] = [];
     const result = initializeFirebaseInOrder({
@@ -22,7 +22,6 @@ describe("Firebase Auth/ Firestore/Storage bootstrap", () => {
         return { id: "storage" };
       },
     });
-
     expect(order).toEqual(["app", "auth", "firestore", "storage"]);
     expect(result.storage).toEqual({ id: "storage" });
   });

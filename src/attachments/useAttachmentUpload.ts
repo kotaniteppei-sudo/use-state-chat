@@ -1,18 +1,18 @@
-import {
-  createAttachmentPath,
-  validateAttachmentFile,
-  attachmentMetadataFromStoredObject,
-  type AttachmentMetadata,
-} from "../contracts/attachment";
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getMetadata,
   ref,
   uploadBytesResumable,
   type FirebaseStorage,
-  type StorageError,
-  type UploadTaskSnapshot,
 } from "firebase/storage";
-import { useState, useRef, useCallback, useEffect } from "react";
+import {
+  attachmentMetadataFromStoredObject,
+  createAttachmentPath,
+  validateAttachmentFile,
+  type AttachmentMetadata,
+} from "../contracts/attachment";
 
 export type AttachmentUploadState =
   | { status: "idle" }
@@ -51,14 +51,14 @@ export function createFirebaseUploadAdapter(
 
       const unsubscribe = task.on(
         "state_changed",
-        (snapshot: UploadTaskSnapshot) => {
+        (snapshot) => {
           callbacks.progress(
             snapshot.totalBytes === 0
               ? 0
               : snapshot.bytesTransferred / snapshot.totalBytes,
           );
         },
-        (error: StorageError) => callbacks.error(error.code),
+        (error) => callbacks.error(error.code),
         () => {
           void getMetadata(task.snapshot.ref)
             .then((metadata) => {
@@ -69,14 +69,8 @@ export function createFirebaseUploadAdapter(
             .catch(() => callbacks.error("storage/metadata-unavailable"));
         },
       );
-      return {
-        cancel: () => {
-          return task.cancel();
-        },
-        unsubscribe: () => {
-          unsubscribe();
-        },
-      };
+
+      return { cancel: () => task.cancel(), unsubscribe };
     },
   };
 }
@@ -96,7 +90,6 @@ export function useAttachmentUpload(adapter: AttachmentUploadAdapter) {
   const start = useCallback(
     (roomId: string, userId: string, file: File) => {
       stopCurrent();
-
       const validationError = validateAttachmentFile(file);
       if (validationError) {
         setState({ status: "error", message: validationError });
@@ -107,6 +100,7 @@ export function useAttachmentUpload(adapter: AttachmentUploadAdapter) {
       const fullPath = createAttachmentPath(roomId, userId);
 
       setState({ status: "uploading", progress: 0 });
+
       runningRef.current = adapter.start(fullPath, file, {
         progress(progress) {
           if (generation === generationRef.current) {
@@ -115,6 +109,7 @@ export function useAttachmentUpload(adapter: AttachmentUploadAdapter) {
         },
         complete(attachment) {
           if (generation === generationRef.current) {
+            runningRef.current = null;
             setState({ status: "success", attachment });
           }
         },

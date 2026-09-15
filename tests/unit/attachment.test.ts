@@ -9,7 +9,7 @@ import {
 } from "../../src/contracts/attachment";
 
 function fileOf(size: number, type: string): Pick<File, "size" | "type"> {
-  return { size, type };
+  return { size, type } as Pick<File, "size" | "type">;
 }
 
 describe("attachment contract", () => {
@@ -36,10 +36,10 @@ describe("attachment contract", () => {
 
   it("空fileと未許可MIMEを拒否する", () => {
     expect(validateAttachmentFile(fileOf(0, "image/png"))).not.toBeNull();
-    expect(validateAttachmentFile(fileOf(0, "text/plain"))).not.toBeNull();
+    expect(validateAttachmentFile(fileOf(1, "text/plain"))).not.toBeNull();
   });
 
-  it("room、current uid、UUIDから正式pathを作る", () => {
+  it("room, current uid、UUIDから正式pathを作る", () => {
     vi.spyOn(crypto, "randomUUID").mockReturnValue(
       "00000000-0000-4000-8000-000000000000",
     );
@@ -58,7 +58,6 @@ describe("attachment contract", () => {
       contentType: "application/pdf",
       size: 4,
     });
-
     expect(metadata).toEqual({
       fullPath: "rooms/room-a/attachments/user-a/file-1",
       contentType: "application/pdf",
@@ -66,6 +65,7 @@ describe("attachment contract", () => {
       displayName: "guide.pdf",
     });
     expect(isAttachmentMetadata({ ...metadata, extra: true })).toBe(false);
+
     expect(() =>
       attachmentMetadataFromStoredObject("guide.pdf", {
         ...metadata,

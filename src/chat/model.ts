@@ -39,7 +39,6 @@ export function parseChatMessageDocument(
   data: DocumentData,
 ): ChatMessageDocument {
   const attachment = data.attachment as unknown;
-
   if (
     !hasExactMessageKeys(data) ||
     typeof data.text !== "string" ||
@@ -48,9 +47,11 @@ export function parseChatMessageDocument(
     data.text.length > 200 ||
     typeof data.senderId !== "string" ||
     data.senderId.length === 0 ||
-    !(data.createdAt == null || data.createdAt instanceof Timestamp) ||
-    !(data.updatedAt == null || data.updatedAt instanceof Timestamp) ||
-    !(attachment == null || isAttachmentMetadata(attachment))
+    (data.createdAt !== null && !(data.createdAt instanceof Timestamp)) ||
+    (data.updatedAt !== null && !(data.updatedAt instanceof Timestamp)) ||
+    (attachment !== null &&
+      attachment !== undefined &&
+      !isAttachmentMetadata(attachment))
   ) {
     throw new Error("Invalid ChatMessage schema");
   }
@@ -60,7 +61,7 @@ export function parseChatMessageDocument(
     senderId: data.senderId,
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null,
-    attachment: (attachment as AttachmentMetadata) ?? null,
+    attachment: attachment ?? null,
   };
 }
 
@@ -69,9 +70,8 @@ export const chatMessageConverter: FirestoreDataConverter<
   DocumentData
 > = {
   toFirestore(message: WithFieldValue<ChatMessageDocument>): DocumentData {
-    return message;
+    return message as DocumentData;
   },
-
   fromFirestore(
     snapshot: QueryDocumentSnapshot<DocumentData>,
     options: SnapshotOptions,

@@ -23,6 +23,7 @@ const firestoreRulesPath = fileURLToPath(
 const storageRulesPath = fileURLToPath(
   new URL("../../rules/storage.rules", import.meta.url),
 );
+
 let testEnv: RulesTestEnvironment;
 
 beforeAll(async () => {
@@ -148,6 +149,7 @@ describe("canonical corrected Storage Rules", () => {
         adminIds: [],
       });
     });
+
     const storage = testEnv.authenticatedContext(uid).storage();
     await assertSucceeds(
       uploadBytes(
@@ -156,6 +158,7 @@ describe("canonical corrected Storage Rules", () => {
         { contentType: "application/pdf" },
       ),
     );
+
     await assertFails(
       uploadBytes(
         ref(storage, `rooms/${roomId}/attachments/${uid}/nested/file+v1.pdf`),

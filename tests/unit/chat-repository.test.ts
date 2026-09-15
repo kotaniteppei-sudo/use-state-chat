@@ -11,18 +11,16 @@ function snapshot(id: string, millis: number) {
     updatedAt: null,
     attachment: null,
   };
-
   return { id, data: () => data } as QueryDocumentSnapshot<ChatMessageDocument>;
 }
 
 describe("latest message display order", () => {
-  it("desc query結果をUI用に昇順へ反転しIDを付ける", () => {
+  it("desc query結果をUI用の昇順へ反転しIDを付ける", () => {
     const result = latestMessagesInDisplayOrder([
       snapshot("newest", 3),
       snapshot("middle", 2),
       snapshot("oldest", 1),
     ]);
-
     expect(result.map((message) => message.id)).toEqual([
       "oldest",
       "middle",

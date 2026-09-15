@@ -1,8 +1,8 @@
 import { createElement } from "react";
 import TestRenderer, { act } from "react-test-renderer";
-import { describe, it, expect, vi } from "vitest";
-import { ChatMessage } from "../../src/chat/model";
-import { SubscribeToRoomMessages } from "../../src/chat/repository";
+import { describe, expect, it, vi } from "vitest";
+import type { ChatMessage } from "../../src/chat/model";
+import type { SubscribeToRoomMessages } from "../../src/chat/repository";
 import {
   useRoomMessages,
   type RoomMessagesState,
@@ -59,9 +59,9 @@ describe("useRoomMessages", () => {
     );
     expect(latest?.messages.map((item) => item.id)).toEqual(["a"]);
 
-    await act(async () =>
-      renderer.update(createElement(Probe, { roomId: "room-b" })),
-    );
+    await act(async () => {
+      renderer.update(createElement(Probe, { roomId: "room-b" }));
+    });
     expect(subscriptions.get("room-a")?.unsubscribe).toHaveBeenCalledOnce();
     expect(latest).toMatchObject({ messages: [], loading: true });
 
@@ -76,13 +76,13 @@ describe("useRoomMessages", () => {
     expect(latest?.messages.map((item) => item.id)).toEqual(["b"]);
 
     await act(async () => renderer.unmount());
+    expect(subscriptions.get("room-b")?.unsubscribe).toHaveBeenCalledOnce();
   });
 
   it("購読errorとroom未選択を明示状態へ変換する", async () => {
     let latest: RoomMessagesState | undefined;
     let fail: ((error: Error) => void) | undefined;
-
-    const subscribe: SubscribeToRoomMessages = (_roomId, _messages, error) => {
+    const subscribe: SubscribeToRoomMessages = (roomId, messages, error) => {
       fail = error;
       return vi.fn();
     };
@@ -91,8 +91,8 @@ describe("useRoomMessages", () => {
       latest = useRoomMessages(roomId, subscribe);
       return null;
     }
-    let renderer: TestRenderer.ReactTestRenderer;
 
+    let renderer: TestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = TestRenderer.create(
         createElement(Probe, { roomId: "room-a" }),
@@ -110,13 +110,12 @@ describe("useRoomMessages", () => {
       renderer.update(createElement(Probe, { roomId: null })),
     );
     expect(latest).toEqual({ messages: [], loading: false, error: null });
-
     await act(async () => renderer.unmount());
   });
 
   it("room解除後に同じroomを再選択しても旧messageを再表示しない", async () => {
     const callbacks: Array<(messages: ChatMessage[]) => void> = [];
-    const subscribe: SubscribeToRoomMessages = (_roomId, messages) => {
+    const subscribe: SubscribeToRoomMessages = (roomId, messages) => {
       callbacks.push(messages);
       return vi.fn();
     };
@@ -126,14 +125,15 @@ describe("useRoomMessages", () => {
       latest = useRoomMessages(roomId, subscribe);
       return null;
     }
-    let renderer: TestRenderer.ReactTestRenderer;
 
+    let renderer: TestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = TestRenderer.create(
         createElement(Probe, { roomId: "room-a" }),
       );
     });
-    await act(() => callbacks[0]?.([message("old-a")]));
+
+    await act(async () => callbacks[0]?.([message("old-a")]));
     expect(latest?.messages.map((item) => item.id)).toEqual(["old-a"]);
 
     await act(async () =>
@@ -141,9 +141,9 @@ describe("useRoomMessages", () => {
     );
     expect(latest).toEqual({ messages: [], loading: false, error: null });
 
-    await act(async () =>
-      renderer.update(createElement(Probe, { roomId: "room-a" })),
-    );
+    await act(async () => {
+      renderer.update(createElement(Probe, { roomId: "room-a" }));
+    });
     expect(latest).toEqual({ messages: [], loading: true, error: null });
 
     await act(async () => renderer.unmount());
