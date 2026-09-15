@@ -3,7 +3,7 @@ import {
   validateAttachmentFile,
   attachmentMetadataFromStoredObject,
   type AttachmentMetadata,
-} from "@/contracts/attachment";
+} from "../contracts/attachment";
 import {
   getMetadata,
   ref,
@@ -21,7 +21,7 @@ export type AttachmentUploadState =
   | { status: "canceled" }
   | { status: "error"; message: string };
 
-export type useAttachmentUploadCallbacks = {
+export type AttachmentUploadCallbacks = {
   progress(progress: number): void;
   complete(attachment: AttachmentMetadata): void;
   error(code: string): void;
@@ -36,7 +36,7 @@ export type AttachmentUploadAdapter = {
   start(
     fullPath: string,
     file: File,
-    callbacks: useAttachmentUploadCallbacks,
+    callbacks: AttachmentUploadCallbacks,
   ): RunningAttachmentUpload;
 };
 
@@ -107,7 +107,6 @@ export function useAttachmentUpload(adapter: AttachmentUploadAdapter) {
       const fullPath = createAttachmentPath(roomId, userId);
 
       setState({ status: "uploading", progress: 0 });
-
       runningRef.current = adapter.start(fullPath, file, {
         progress(progress) {
           if (generation === generationRef.current) {
@@ -119,9 +118,14 @@ export function useAttachmentUpload(adapter: AttachmentUploadAdapter) {
             setState({ status: "success", attachment });
           }
         },
-        error(message) {
+        error(code) {
           if (generation === generationRef.current) {
-            setState({ status: "error", message });
+            runningRef.current = null;
+            setState(
+              code === "storage/canceled"
+                ? { status: "canceled" }
+                : { status: "error", message: "アップロードに失敗しました。" },
+            );
           }
         },
       });

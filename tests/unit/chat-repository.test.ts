@@ -1,7 +1,7 @@
 import { Timestamp, type QueryDocumentSnapshot } from "firebase/firestore";
 import { describe, expect, it } from "vitest";
 import { latestMessagesInDisplayOrder } from "../../src/chat/repository";
-import type { ChatMessageDocument } from "@/chat/model";
+import type { ChatMessageDocument } from "../../src/chat/model";
 
 function snapshot(id: string, millis: number) {
   const data: ChatMessageDocument = {
@@ -9,6 +9,7 @@ function snapshot(id: string, millis: number) {
     senderId: "user-a",
     createdAt: Timestamp.fromMillis(millis),
     updatedAt: null,
+    attachment: null,
   };
 
   return { id, data: () => data } as QueryDocumentSnapshot<ChatMessageDocument>;

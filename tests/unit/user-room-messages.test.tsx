@@ -19,6 +19,7 @@ function message(id: string): ChatMessage {
     senderId: "user-a",
     createdAt: null,
     updatedAt: null,
+    attachment: null,
   };
 }
 

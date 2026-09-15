@@ -1,68 +1,99 @@
 rules_version = '2';
 service cloud.firestore {
-    match /databases/{database}/documents {
-        
-        function signedIn() {
-            return request.auth != null;
-        }
-
-        function room(roomId) {
-            return get(/databases/$(database)/documents/rooms/$(roomId)).data;
-        }
-
-        function isMember(roomId) {
-            return signedIn() 
-            && room(roomId).memberIds is list 
-            && request.auth.uid in room(roomId).memberIds;
-        }
-
-        function isRoomAdmin(roomId) {
-            return isMember(roomId) 
-            && room(roomId).adminIds is list 
-            && request.auth.uid in room(roomId).adminIds;
-        }
-
-        function validMessageCreate() {
-            let data = request.resource.data;
-            return data.keys().hasAll(["text","senderId","createdAt","updatedAt"]) 
-            && data.keys().hasOnly(["text","senderId","createdAt","updatedAt"]) 
-            && data.text is string 
-            && data.text == data.text.trim() 
-            && data.text.size() > 0 
-            && data.text.size() <= 200 
-            && data.senderId == request.auth.uid 
-            && data.createdAt == request.time 
-            && data.updatedAt == null;
-        }
-
-        function validMessageUpdate() {
-            let data = request.resource.data;
-            return data.keys().hasAll(["text","senderId","createdAt","updatedAt"]) 
-            && data.keys().hasOnly(["text","senderId","createdAt","updatedAt"]) 
-            && data.diff(resource.data).affectedKeys().hasOnly(["text","updatedAt"])
-            && data.text is string 
-            && data.text == data.text.trim() 
-            && data.text.size() > 0 
-            && data.text.size() <= 200 
-            && data.updatedAt == request.time 
-        }
-
-        match /rooms/{roomId} {
-            allow read:if signedIn() 
-            && resource.data.memberIds is list 
-            && request.auth.uid in resource.data.memberIds;
-            allow create, update, delete:if false;
-
-            match /messages/{memberId} {
-                allow read:if isMember(roomId);
-                allow create:if isMember(roomId) 
-                && validMessageCreate();
-                allow update: if isMember(roomId) 
-                && resource.data.senderId == request.auth.uid 
-                && validMessageUpdate();
-                allow delete: if isMember(roomId) 
-                && (resource.data.senderId == request.auth.uid || isRoomAdmin(roomId));
-            }
-        }
+  match /databases/{database}/documents {
+    
+    function signedIn() {
+      return request.auth != null;
     }
+
+    function room(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)).data;
+    }
+
+    function isMember(roomId) {
+      return signedIn()
+        && room(roomId).memberIds is list
+        && request.auth.uid in room(roomId).memberIds;
+    }
+
+    function isRoomAdmin(roomId) {
+      return isMember(roomId) 
+        && room(roomId).adminIds is list
+        && request.auth.uid in room(roomId).adminIds;
+    }
+
+    function validAttachmentPath(fullPath, roomId) {
+      let segments = fullPath.split('/');
+      return segments.size() == 5 
+        && segments[0] == 'rooms'
+        && segments[1] == roomId
+        && segments[2] == 'attachments'
+        && segments[3] == request.auth.uid
+        && segments[4].size() > 0;
+    }
+
+    function validAttachment(data, roomId) {
+      return data == null || (
+        data.keys().hasAll(['fullPath', 'contentType', 'size', 'displayName'])
+        && data.keys().hasOnly(['fullPath', 'contentType', 'size', 'displayName'])
+        && data.fullPath is string
+        && validAttachmentPath(data.fullPath, roomId)
+        && data.contentType is string
+        && data.size is int
+        && data.size > 0
+        && (data.contentType.matches('image/(jpeg|png)') 
+        && data.size <= 5 * 1024 * 1024
+        || data.contentType == 'application/pdf'
+        && data.size <= 10 * 1024 * 1024)
+        && data.displayName is string
+        && data.displayName == data.displayName.trim()
+        && data.displayName.size() > 0
+        && data.displayName.size() <= 255
+      );
+    }
+
+    function validMessageCreate(roomId) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['text', 'senderId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['text', 'senderId', 'createdAt', 'updatedAt', 'attachment'])
+        && data.text is string
+        && data.text == data.text.trim()
+        && data.text.trim().size() > 0
+        && data.text.size() <= 200
+        && data.senderId == request.auth.uid
+        && (data.createdAt == null || data.updatedAt is timestamp)
+        && data.updatedAt == null
+        && (!data.keys().hasAny(['attachment']) || validAttachment(data.attachment, roomId));
+    }
+
+    function validMessageUpdate() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['text', 'senderId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['text', 'senderId', 'createdAt', 'updatedAt', 'attachment'])
+        && data.diff(resource.data).affectedKeys().hasOnly(['text', 'updatedAt'])
+        && data.text is string
+        && data.text == data.text.trim()
+        && data.text.trim().size() > 0
+        && data.text.size() <= 200
+        && (data.updatedAt == null || data.updatedAt is timestamp);
+    }
+
+    match /rooms/{roomId} {
+      allow read: if signedIn()
+        && resource.data.memberIds is list
+        && request.auth.uid in resource.data.memberIds;
+      allow create, update, delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isMember(roomId);
+        allow create: if isMember(roomId)
+          && validMessageCreate(roomId);
+        allow update: if isMember(roomId)
+          && resource.data.senderId == request.auth.uid
+          && validMessageUpdate();
+        allow delete: if isMember(roomId)
+        && (resource.data.senderId == request.auth.uid || isRoomAdmin(roomId));
+      }
+    }
+  }
 }

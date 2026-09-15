@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import {
   chatMessageConverter,
+  type AttachmentMetadata,
   type ChatMessageDocument,
   type ChatMessage,
 } from "./model";
@@ -29,7 +30,13 @@ export type SubscribeToRoomMessages = (
 export function latestMessagesInDisplayOrder(
   docs: readonly QueryDocumentSnapshot<ChatMessageDocument>[],
 ): ChatMessage[] {
-  return docs.map((item) => ({ id: item.id, ...item.data() })).reverse();
+  return docs
+    .map((item) => ({
+      id: item.id,
+      ...item.data(),
+      attachment: item.data().attachment ?? null,
+    }))
+    .reverse();
 }
 
 export function createChatRepository(services: { auth: Auth; db: Firestore }) {
@@ -42,6 +49,7 @@ export function createChatRepository(services: { auth: Auth; db: Firestore }) {
   async function createMessage(input: {
     roomId: string;
     text: string;
+    attachment?: AttachmentMetadata | null;
   }): Promise<string> {
     const user = services.auth.currentUser;
     if (!user) throw new Error("ログインが必要です。");
@@ -53,6 +61,7 @@ export function createChatRepository(services: { auth: Auth; db: Firestore }) {
       senderId: user.uid,
       createdAt: serverTimestamp(),
       updatedAt: null,
+      attachment: input.attachment ?? null,
     });
     return created.id;
   }
@@ -79,7 +88,7 @@ export function createChatRepository(services: { auth: Auth; db: Firestore }) {
     roomId,
     onMessages,
     onError,
-  ) => {
+  ): Unsubscribe => {
     const latest = query(
       messagesCollection(roomId),
       orderBy("createdAt", "desc"),

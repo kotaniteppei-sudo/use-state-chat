@@ -1,23 +1,25 @@
-import { readFile } from "fs/promises";
-import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
-  RulesTestEnvironment,
+  type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
   addDoc,
   collection,
-  getDoc,
+  deleteDoc,
   doc,
+  getDoc,
+  getDocs,
   setDoc,
-  serverTimestamp,
   Timestamp,
   updateDoc,
-  deleteDoc,
+  serverTimestamp,
 } from "firebase/firestore";
-import { beforeAll, beforeEach, describe, it, afterAll } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
+import { fileURLToPath } from "node:url";
+import { emphasize } from "@mui/material";
 
 const projectId = "demo-training-chat";
 const rulesPath = fileURLToPath(
@@ -25,28 +27,10 @@ const rulesPath = fileURLToPath(
 );
 let testEnv: RulesTestEnvironment;
 
-function validCreate(senderId = "member") {
-  return {
-    text: "hello",
-    senderId,
-    createdAt: serverTimestamp(),
-    updatedAt: null,
-  };
-}
-
-beforeAll(async () => {
-  testEnv = await initializeTestEnvironment({
-    projectId,
-    firestore: { rules: await readFile(rulesPath, "utf8") },
-  });
-});
-
-afterAll(async () => testEnv.cleanup());
-
-beforeEach(async () => {
-  await testEnv.clearFirestore();
+async function seedFixtures() {
   await testEnv.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
+
     await setDoc(doc(db, "rooms/room-a"), {
       name: "Room A",
       memberIds: ["author", "member", "admin"],
@@ -59,31 +43,60 @@ beforeEach(async () => {
         senderId: "author",
         createdAt: Timestamp.fromMillis(1),
         updatedAt: null,
+        attachment: null,
       });
     }
   });
+}
+
+beforeAll(async () => {
+  testEnv = await initializeTestEnvironment({
+    projectId,
+    firestore: { rules: await readFile(rulesPath, "utf8") },
+  });
 });
 
-describe("lesson 16 Firestore Rules", () => {
-  it("memberのroom文書readを許可し、未認証とnon-memberを拒否する", async () => {
+beforeEach(async () => {
+  await testEnv.clearFirestore();
+  await seedFixtures();
+});
+
+afterAll(async () => await testEnv.cleanup());
+
+function validCreate(senderId = "member") {
+  return {
+    text: "hello",
+    senderId,
+    createdAt: serverTimestamp(),
+    updatedAt: null,
+    attachment: null,
+  };
+}
+
+describe("canonical corrected Firestore Rules", () => {
+  it("memberのroom/message readを許可し、unauth/nonmemberを拒否する", async () => {
     const memberDb = testEnv.authenticatedContext("member").firestore();
     await assertSucceeds(getDoc(doc(memberDb, "rooms/room-a")));
-
-    await assertFails(
-      getDoc(doc(testEnv.unauthenticatedContext().firestore(), "rooms/room-a")),
+    await assertSucceeds(
+      getDocs(collection(memberDb, "rooms/room-a/messages")),
     );
 
-    await assertFails(
-      getDoc(
-        doc(
-          testEnv.authenticatedContext("outsider").firestore(),
-          "rooms/room-a",
-        ),
-      ),
-    );
+    const unauthDb = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(unauthDb, "rooms/room-a")));
+    await assertFails(getDocs(collection(unauthDb, "rooms/room-a/messages")));
+
+    const outsiderDb = testEnv.authenticatedContext("outsider").firestore();
+    await assertFails(getDocs(collection(outsiderDb, "rooms/room-a/messages")));
   });
 
-  it("member本人の正式createを許可する", async () => {
+  it("clientによるroom create/update/deleteを常に拒否する", async () => {
+    const db = testEnv.authenticatedContext("admin").firestore();
+    await assertFails(setDoc(doc(db, "rooms/room-b"), { name: "new" }));
+    await assertFails(updateDoc(doc(db, "rooms/room-a"), { name: "new" }));
+    await assertFails(deleteDoc(doc(db, "rooms/room-a")));
+  });
+
+  it("memberの正式createをattachment欠落/nullの両方で許可する", async () => {
     const messages = collection(
       testEnv.authenticatedContext("member").firestore(),
       "rooms/room-a/messages",
@@ -91,10 +104,19 @@ describe("lesson 16 Firestore Rules", () => {
     await assertSucceeds(addDoc(messages, validCreate()));
   });
 
-  it("non-member,sender spoof、追加field、本文、時刻違反を拒否する", async () => {
+  it("nonmember,sender spoof、field/本文/時刻違反createを拒否する", async () => {
     const memberMessages = collection(
       testEnv.authenticatedContext("member").firestore(),
-      "rooms/room-a/messages",
+      "rooms/room-s/messages",
+    );
+    await assertFails(
+      addDoc(
+        collection(
+          testEnv.authenticatedContext("outsider").firestore(),
+          "rooms/room-a/messages",
+        ),
+        validCreate("outsider"),
+      ),
     );
 
     await assertFails(addDoc(memberMessages, validCreate("author")));
@@ -102,30 +124,139 @@ describe("lesson 16 Firestore Rules", () => {
       addDoc(memberMessages, { ...validCreate(), isAdmin: true }),
     );
     await assertFails(
-      addDoc(memberMessages, { ...validCreate(), text: " bad " }),
+      addDoc(memberMessages, { ...validCreate(), text: " hello " }),
+    );
+    await assertFails(
+      addDoc(memberMessages, { ...validCreate(), text: "x".repeat(201) }),
     );
     await assertFails(
       addDoc(memberMessages, {
-        ...validCreate,
+        ...validCreate(),
         createdAt: Timestamp.fromMillis(2),
       }),
     );
     await assertFails(
-      addDoc(memberMessages, { ...validCreate(), text: "a".repeat(201) }),
+      addDoc(memberMessages, {
+        ...validCreate(),
+        updatedAt: serverTimestamp(),
+      }),
     );
   });
 
-  it("投稿者だけがtextとserver updatedAtを更新できる", async () => {
+  it("正式attachment metadataを許可し、不一致path/MIME/size/name/追加fieldを拒否する", async () => {
+    const messages = collection(
+      testEnv.authenticatedContext("member").firestore(),
+      "rooms/room-a/messages",
+    );
+
+    const attachment = {
+      fullPath: "rooms/room-a/attachments/member/file-1",
+      contentType: "application/pdf",
+      size: 4,
+      displayName: "guide.pdf",
+    };
+
+    await assertSucceeds(addDoc(messages, { ...validCreate(), attachment }));
+
+    await assertFails(
+      addDoc(messages, {
+        ...validCreate(),
+        attachment: {
+          ...attachment,
+          fullPath: "/rooms/room-a/attachments/author/file-1",
+        },
+      }),
+    );
+
+    await assertFails(
+      addDoc(messages, {
+        ...validCreate(),
+        attachment: { ...attachment, contentType: "text/plain" },
+      }),
+    );
+
+    await assertFails(
+      addDoc(messages, {
+        ...validCreate(),
+        attachment: {
+          ...attachment,
+          contentType: "image/png",
+          size: 5 * 1024 * 1024 + 1,
+        },
+      }),
+    );
+
+    await assertFails(
+      addDoc(messages, {
+        ...validCreate(),
+        attachment: { ...attachment, displayName: " guide.pdf " },
+      }),
+    );
+
+    await assertFails(
+      addDoc(messages, {
+        ...validCreate(),
+        attachment: { ...attachment, downloadToken: "secret" },
+      }),
+    );
+  });
+
+  it("句読点を含む各segmentを許可し、room/UID不一致とsegment注入を拒否する", async () => {
+    const roomId = "room.team+v1";
+    const uid = "member+team@example.com";
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await setDoc(doc(db, `room/${roomId}`), {
+        name: "Punctuation IDs",
+        memberIds: [uid],
+        adminIds: [],
+      });
+    });
+    const messages = collection(
+      testEnv.authenticatedContext(uid).firestore(),
+      `rooms/${roomId}/messages`,
+    );
+
+    const attachment = {
+      fullPath: `rooms/${roomId}/attachments/${uid}/file+v1.pdf`,
+      contentType: "application/pdf",
+      size: 4,
+      displayName: "guide.pdf",
+    };
+
+    await assertSucceeds(
+      addDoc(messages, {
+        ...validCreate(uid),
+        attachment,
+      }),
+    );
+    for (const fullPath of [
+      `rooms/other-room/attachments/${uid}/file+v1.pdf`,
+      `rooms/${roomId}/attachments/other-user/file+v1.pdf`,
+      `rooms/${roomId}/attachments/${uid}/nested/file+v1.pdf`,
+    ]) {
+      await assertFails(
+        addDoc(messages, {
+          ...validCreate(uid),
+          attachment: { ...attachment, fullPath },
+        }),
+      );
+    }
+  });
+
+  it("authorだけがtext/updatedAtを更新でき、adminを含む他memberは更新できない", async () => {
     await assertSucceeds(
       updateDoc(
         doc(
           testEnv.authenticatedContext("author").firestore(),
           "rooms/room-a/messages/message-a",
         ),
-        { text: "after", updatedAt: serverTimestamp() },
+        {
+          text: "after",
+          updatedAt: serverTimestamp(),
+        },
       ),
     );
-
     for (const uid of ["member", "admin"]) {
       await assertFails(
         updateDoc(
@@ -142,24 +273,45 @@ describe("lesson 16 Firestore Rules", () => {
     }
   });
 
-  it("不変field、追加field、bad text/timeのupdateを拒否する", async () => {
+  it("不変field、attachment、追加field、bad text/timeのupdateを拒否する", async () => {
     const target = doc(
       testEnv.authenticatedContext("author").firestore(),
       "rooms/room-a/messages/message-a",
     );
     await assertFails(updateDoc(target, { senderId: "member" }));
+    await assertFails(updateDoc(target, { createdAt: serverTimestamp() }));
     await assertFails(
-      updateDoc(target, { createdAt: Timestamp.fromMillis(2) }),
+      updateDoc(target, {
+        attachment: {
+          fullPath: "rooms/room-a/attachments/author/file-1",
+          contentType: "application/pdf",
+          size: 1,
+          displayName: "a.pdf",
+        },
+      }),
     );
-    await assertFails(updateDoc(target, { attachment: "dummy.png" }));
     await assertFails(updateDoc(target, { isAdmin: true }));
+    await assertFails(
+      updateDoc(target, { text: " bad ", updatedAt: serverTimestamp() }),
+    );
+    await assertFails(
+      updateDoc(target, { text: "after", updatedAt: Timestamp.fromMillis(2) }),
+    );
   });
 
-  it("投稿者とadminのdeleteだけを許可する", async () => {
+  it("author/admin deleteを許可し、ordinary member/outsiderを拒否する", async () => {
     await assertFails(
       deleteDoc(
         doc(
           testEnv.authenticatedContext("member").firestore(),
+          "rooms/room-a/messages/message-a",
+        ),
+      ),
+    );
+    await assertSucceeds(
+      deleteDoc(
+        doc(
+          testEnv.authenticatedContext("outsider").firestore(),
           "rooms/room-a/messages/message-a",
         ),
       ),

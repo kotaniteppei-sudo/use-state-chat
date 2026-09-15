@@ -6,25 +6,42 @@ import {
   type SnapshotOptions,
   type WithFieldValue,
 } from "firebase/firestore";
+import {
+  isAttachmentMetadata,
+  type AttachmentMetadata,
+} from "../contracts/attachment";
 
 export type ChatMessageDocument = {
   text: string;
   senderId: string;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
+  attachment?: AttachmentMetadata | null;
 };
 
-export type ChatMessage = ChatMessageDocument & { id: string };
+export type ChatMessage = Omit<ChatMessageDocument, "attachment"> & {
+  id: string;
+  attachment: AttachmentMetadata | null;
+};
 
 const requiredKeys = ["text", "senderId", "createdAt", "updatedAt"];
+const allowedKeys = [...requiredKeys, "attachment"];
+
+function hasExactMessageKeys(data: DocumentData): boolean {
+  const keys = Object.keys(data);
+  return (
+    requiredKeys.every((key) => keys.includes(key)) &&
+    keys.every((key) => allowedKeys.includes(key))
+  );
+}
 
 export function parseChatMessageDocument(
   data: DocumentData,
 ): ChatMessageDocument {
-  const keys = Object.keys(data);
+  const attachment = data.attachment as unknown;
+
   if (
-    keys.length !== requiredKeys.length ||
-    !requiredKeys.every((key) => keys.includes(key)) ||
+    !hasExactMessageKeys(data) ||
     typeof data.text !== "string" ||
     data.text !== data.text.trim() ||
     data.text.length === 0 ||
@@ -32,7 +49,8 @@ export function parseChatMessageDocument(
     typeof data.senderId !== "string" ||
     data.senderId.length === 0 ||
     !(data.createdAt == null || data.createdAt instanceof Timestamp) ||
-    !(data.updatedAt == null || data.updatedAt instanceof Timestamp)
+    !(data.updatedAt == null || data.updatedAt instanceof Timestamp) ||
+    !(attachment == null || isAttachmentMetadata(attachment))
   ) {
     throw new Error("Invalid ChatMessage schema");
   }
@@ -42,6 +60,7 @@ export function parseChatMessageDocument(
     senderId: data.senderId,
     createdAt: data.createdAt ?? null,
     updatedAt: data.updatedAt ?? null,
+    attachment: (attachment as AttachmentMetadata) ?? null,
   };
 }
 
@@ -60,3 +79,5 @@ export const chatMessageConverter: FirestoreDataConverter<
     return parseChatMessageDocument(snapshot.data(options));
   },
 };
+
+export type { AttachmentMetadata } from "../contracts/attachment";

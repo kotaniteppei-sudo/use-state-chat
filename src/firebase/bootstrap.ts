@@ -13,30 +13,37 @@ import {
   getFirestore,
   type Firestore,
 } from "firebase/firestore";
+import {
+  connectStorageEmulator,
+  getStorage,
+  type FirebaseStorage,
+} from "firebase/storage";
 
-export type FirebaseBootstrapSteps<TApp, TAuth, TDb> = {
+export type FirebaseBootstrapSteps<TApp, TAuth, TDb, TStorage> = {
   app(): TApp;
   auth(app: TApp): TAuth;
   firestore(app: TApp): TDb;
+  storage(app: TApp): TStorage;
 };
 
-export function initializeFirebaseInOrder<TApp, TAuth, TDb>(
-  steps: FirebaseBootstrapSteps<TApp, TAuth, TDb>,
+export function initializeFirebaseInOrder<TApp, TAuth, TDb, TStorage>(
+  steps: FirebaseBootstrapSteps<TApp, TAuth, TDb, TStorage>,
 ) {
   const firebaseApp = steps.app();
   const auth = steps.auth(firebaseApp);
   const db = steps.firestore(firebaseApp);
-  return { firebaseApp, auth, db };
+  const storage = steps.storage(firebaseApp);
+  return { firebaseApp, auth, db, storage };
 }
 
 const bootstrapGlobal = globalThis as typeof globalThis & {
-  __trainingCheckpoint15EmulatorApps?: WeakSet<FirebaseApp>;
+  __trainingCheckpoint17EmulatorApps?: WeakSet<FirebaseApp>;
 };
 
 const emulatorApps =
-  bootstrapGlobal.__trainingCheckpoint15EmulatorApps ??
+  bootstrapGlobal.__trainingCheckpoint17EmulatorApps ??
   new WeakSet<FirebaseApp>();
-bootstrapGlobal.__trainingCheckpoint15EmulatorApps = emulatorApps;
+bootstrapGlobal.__trainingCheckpoint17EmulatorApps = emulatorApps;
 
 function defaultFirebaseApp(config: FirebaseOptions): FirebaseApp {
   const existing = getApps().find(
@@ -53,7 +60,12 @@ function defaultFirebaseApp(config: FirebaseOptions): FirebaseApp {
 export function bootstrapFirebaseClient(options: {
   firebaseConfig: FirebaseOptions;
   useEmulators: boolean;
-}): { firebaseApp: FirebaseApp; auth: Auth; db: Firestore } {
+}): {
+  firebaseApp: FirebaseApp;
+  auth: Auth;
+  db: Firestore;
+  storage: FirebaseStorage;
+} {
   if (
     options.useEmulators &&
     options.firebaseConfig.projectId !== "demo-training-chat"
@@ -65,6 +77,7 @@ export function bootstrapFirebaseClient(options: {
     app: () => defaultFirebaseApp(options.firebaseConfig),
     auth: (firebaseApp) => getAuth(firebaseApp),
     firestore: (firebaseApp) => getFirestore(firebaseApp),
+    storage: (firebaseApp) => getStorage(firebaseApp),
   });
 
   if (options.useEmulators && !emulatorApps.has(client.firebaseApp)) {
@@ -72,6 +85,7 @@ export function bootstrapFirebaseClient(options: {
       disableWarnings: true,
     });
     connectFirestoreEmulator(client.db, "127.0.0.1", 8080);
+    connectStorageEmulator(client.storage, "127.0.0.1", 9199);
     emulatorApps.add(client.firebaseApp);
   }
   return client;

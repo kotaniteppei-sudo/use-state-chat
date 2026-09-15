@@ -1,27 +1,15 @@
-import { act } from "react-test-renderer";
-import { useAttachmentUpload } from "../../src/attachments/useAttachmentUpload";
 import { describe, expect, it, vi } from "vitest";
 import {
-  ATTACHMENT_CONTENT_TYPES,
+  attachmentMetadataFromStoredObject,
   createAttachmentPath,
   IMAGE_MAX_BYTES,
+  isAttachmentMetadata,
   PDF_MAX_BYTES,
   validateAttachmentFile,
 } from "../../src/contracts/attachment";
-import next from "next";
-
-(
-  globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
-).IS_REACT_ACT_ENVIRONMENT = true;
 
 function fileOf(size: number, type: string): Pick<File, "size" | "type"> {
   return { size, type };
-}
-
-function pdf(name: string): File {
-  return new File([new Uint8Array([1, 2, 3, 4])], name, {
-    type: "application/pdf",
-  });
 }
 
 describe("attachment contract", () => {
@@ -64,13 +52,25 @@ describe("attachment contract", () => {
     expect(() => createAttachmentPath("room/a", "user-a")).toThrow();
   });
 
-  it("進捗と成功metadataを反映する", async () => {
-    let callbacks: useAttachmentUploadCallbacks | undefined;
-    const adapter: useAttachmentUpload = {
-      start: vi.fn((path, file, next) => {
-        callbacks = next;
-        return { cancel: vi.fn(() => true), unsubscribe: vi.fn() };
+  it("実Storage metadataからだけ正規化metadataを作る", () => {
+    const metadata = attachmentMetadataFromStoredObject(" guide.pdf ", {
+      fullPath: "rooms/room-a/attachments/user-a/file-1",
+      contentType: "application/pdf",
+      size: 4,
+    });
+
+    expect(metadata).toEqual({
+      fullPath: "rooms/room-a/attachments/user-a/file-1",
+      contentType: "application/pdf",
+      size: 4,
+      displayName: "guide.pdf",
+    });
+    expect(isAttachmentMetadata({ ...metadata, extra: true })).toBe(false);
+    expect(() =>
+      attachmentMetadataFromStoredObject("guide.pdf", {
+        ...metadata,
+        contentType: "text/plain",
       }),
-    };
+    ).toThrow();
   });
 });
