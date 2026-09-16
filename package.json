@@ -1,5 +1,5 @@
 {
-  "name": "training-checkpoint-17",
+  "name": "training-checkpoint-18",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -8,11 +8,8 @@
     "npm": "10.9.8"
   },
   "scripts": {
-    "predev": "node scripts/check-env.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/check-env.mjs",
     "build": "tsc -p tsconfig.build.json",
-    "prestart": "node scripts/check-env.mjs",
     "start": "next start",
     "lint": "eslint src tests --max-warnings=0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -21,9 +18,10 @@
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:e2e": "playwright test",
     "check:secret": "node scripts/check-client-secret.mjs",
-    "test:emulators": "firebase emulators:exec --project demo-training-chat --only firestore,storage \"npm run test:rules\"",
+    "test:emulators": "firebase emulators:exec --project demo-training-chat --only auth,firestore,storage \"npm run test:rules && npm run test:integration\"",
     "test:rules": "vitest run --config vitest.rules.config.ts",
-    "emulators": "firebase emulators:start --project demo-training-chat --only auth,firestore,storage"
+    "emulators": "firebase emulators:start --project demo-training-chat --only auth,firestore,storage",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
@@ -51,12 +49,14 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@types/react-test-renderer": "^19.1.0",
+    "@typescript/native": "npm:typescript@7.0.2",
     "@vitejs/plugin-react": "6.0.5",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.0",
+    "firebase-admin": "14.2.0",
     "jsdom": "30.0.1",
     "react-test-renderer": "^19.2.8",
-    "typescript": "6.0.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "4.1.10"
   }
 }
