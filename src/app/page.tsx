@@ -5,6 +5,11 @@ import { AuthProvider, useAuth } from "@/auth/AuthProvider";
 import { createAuthService } from "@/auth/authService";
 import { bootstrapFirebaseClient } from "../firebase/bootstrap";
 
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN =
+    process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN || true;
+}
 const { auth } = bootstrapFirebaseClient({
   firebaseConfig: {
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -12,6 +17,7 @@ const { auth } = bootstrapFirebaseClient({
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   },
+  appCheckSiteKey: process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY,
   useEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true",
 });
 

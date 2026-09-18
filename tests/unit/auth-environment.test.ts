@@ -41,7 +41,6 @@ describe("auth error and environment guards", () => {
         NEXT_PUBLIC_EXPECTED_FIREBASE_PROJECT_ID: "production-a",
       }),
     ).toThrow(/研修用project/);
-
     expect(() =>
       assertTrainingEnvironment({
         NEXT_PUBLIC_APP_ENV: "training",
@@ -49,7 +48,6 @@ describe("auth error and environment guards", () => {
         NEXT_PUBLIC_EXPECTED_FIREBASE_PROJECT_ID: "demo-other",
       }),
     ).toThrow(/研修用project/);
-
     expect(() =>
       assertTrainingEnvironment({
         NEXT_PUBLIC_APP_ENV: "training",
@@ -59,33 +57,31 @@ describe("auth error and environment guards", () => {
     ).toThrow(/研修用project/);
   });
 
-  describe("serverGuard(assertServerTrainingProject)", () => {
-    it("server allowlistに含まれるprojectだけを許可する", () => {
-      expect(() =>
-        assertServerTrainingProject(
-          "demo-training-chat",
-          "demo-other, demo-training-chat",
-        ),
-      ).not.toThrow();
-    });
+  it("server allowlistに含まれるprojectだけを許可する", () => {
+    expect(() =>
+      assertServerTrainingProject(
+        "demo-training-chat",
+        "demo-other, demo-training-chat",
+      ),
+    ).not.toThrow();
+  });
 
-    it("server allowlistが空なら拒否する", () => {
-      expect(() =>
-        assertServerTrainingProject("demo-training-chat", ""),
-      ).toThrow("project not allowed");
-    });
+  it("server allowlistが空なら拒否する", () => {
+    expect(() => assertServerTrainingProject("demo-training-chat", "")).toThrow(
+      "project not allowed",
+    );
+  });
 
-    it("server allowlistにないprojectを拒否する", () => {
-      expect(() =>
-        assertServerTrainingProject("production-project", "demo-training-chat"),
-      ).toThrow("project not allowed");
-    });
+  it("server allowlistにないprojectを拒否する", () => {
+    expect(() =>
+      assertServerTrainingProject("production-project", "demo-training-chat"),
+    ).toThrow("project not allowed");
+  });
 
-    it("server allowlistの既定値を環境変数から読む", () => {
-      vi.stubEnv("ALLOWED_TRAINING_PROJECT_IDS", "demo-training-chat");
-      expect(() =>
-        assertServerTrainingProject("demo-training-chat"),
-      ).not.toThrow();
-    });
+  it("server allowlistの既定値を環境変数から読む", () => {
+    vi.stubEnv("ALLOWED_TRAINING_PROJECT_IDS", "demo-training-chat");
+    expect(() =>
+      assertServerTrainingProject("demo-training-chat"),
+    ).not.toThrow();
   });
 });

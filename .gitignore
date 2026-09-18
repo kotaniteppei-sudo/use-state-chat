@@ -26,6 +26,7 @@ dist-ssr
 .next/
 coverage/
 .env
-!.env.local.example
+.env*.local
+!.env.example
 playwright-report/
 test-results/
