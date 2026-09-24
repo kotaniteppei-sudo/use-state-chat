@@ -23,7 +23,6 @@ export default defineConfig({
         reuseExistingServer: false,
         timeout: 120_000,
         env: {
-          INTERNAL_API_TOKEN: "e2e-server-only-probe",
           NEXT_PUBLIC_APP_NAME: "Team Chat",
         },
       },

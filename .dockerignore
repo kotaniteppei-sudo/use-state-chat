@@ -1,0 +1,12 @@
+.git
+.github
+.next
+node_modules
+npm-debug.log*
+*-debug.log
+.firebase/
+.env*
+coverage
+test-results
+playwright-report
+gha-creds-*.json
