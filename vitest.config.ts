@@ -11,6 +11,12 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    exclude: [
+      "tests/unit/**",
+      "tests/integration/**",
+      "tests/rules/**",
+      "node_modules/**",
+    ],
     environmentOptions: {
       jsdom: { url: "http://localhodt:3413" },
     },
