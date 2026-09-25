@@ -5,8 +5,7 @@ import { GET } from "../src/app/api/health/route";
 describe("Health Check API", () => {
   it("should return 200 OK status", async () => {
     // ダミーのリクエストを作成してAPIを実行
-    const request = new Request("http://localhost/api/health");
-    const response = await GET(request);
+    const response = await GET();
 
     // ステータスコードが200であることを確認
     expect(response.status).toBe(200);
