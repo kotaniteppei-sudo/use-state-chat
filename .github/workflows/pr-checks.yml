@@ -1,0 +1,8 @@
+name: pr-checks
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable-verify.yml
