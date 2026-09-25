@@ -7,15 +7,15 @@ export default defineConfig({
 
     // 2. 実行対象のファイルをFirebase関連のロジックに絞り込む
     include: [
-      "src/tests/unit/**/*-repository.test.ts",
-      "src/tests/unit/**/*-model.test.ts",
-      "src/tests/unit/firebase-*.test.ts",
+      "tests/unit/**/*-repository.test.ts",
+      "tests/unit/**/*-model.test.ts",
+      "tests/unit/firebase-*.test.ts",
     ],
 
     // 3. UIコンポーネント（React）のテストなどを除外する
     exclude: [
-      "src/tests/unit/**/*.test.tsx",
-      "src/tests/unit/health.test.ts",
+      "tests/unit/**/*.test.tsx",
+      "tests/unit/health.test.ts",
       "node_modules",
     ],
 
