@@ -11,6 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.{ts,tsx}"],
     exclude: [
       "tests/unit/**",
       "tests/integration/**",
@@ -20,7 +21,6 @@ export default defineConfig({
     environmentOptions: {
       jsdom: { url: "http://localhodt:3413" },
     },
-    include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test/setup.ts"],
     css: true,
   },
